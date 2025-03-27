@@ -1,3 +1,14 @@
+---
+title: Air Paradis - Analyse de Sentiment
+emoji: 🛫
+colorFrom: gray
+colorTo: blue
+sdk: gradio
+sdk_version: "3.44.4"
+app_file: app.py
+pinned: false
+---
+
 # 🧠 Air Paradis - Analyse de Sentiment Twitter
 
 Bienvenue sur l'application **d'analyse de sentiment** développée pour la compagnie aérienne **Air Paradis**, dans le cadre du projet P7 du parcours Data Scientist - MLOps.

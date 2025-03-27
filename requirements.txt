@@ -1,0 +1,21 @@
+# requirements.txt / huggingface
+
+scikit-learn
+spacy
+emoji
+gradio
+joblib
+numpy
+pandas
+
+
+# gradio==4.17.0
+# fasttext-wheel
+# spacy
+# emoji
+# pandas
+# scikit-learn==0.22.2.post1
+# cython==0.29.21
+# joblib==0.17.0
+# scipy==1.7.3
+# numpy==1.21.5

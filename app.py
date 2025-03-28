@@ -1,68 +1,116 @@
-import os
-import joblib
-import re
-import emoji
-import spacy
+# === gradio_ui_ultimate.py ===
+# Interface Gradio principale avec visualisation, feedback, historique
+
 import gradio as gr
+from shared.predict_utils import predict_single
+from config import FEEDBACK_ALERT_THRESHOLD
+import pandas as pd
+import plotly.express as px
+import random
+from collections import deque
 
-# === Chargement du modèle et du vectorizer ===
-MODEL_PATH = "model/log_reg_model.pkl"
-VECTORIZER_PATH = "model/tfidf_vectorizer.pkl"
+# === Globals ===
+HISTORY_LIMIT = 5
+feedback_tracker = deque(maxlen=10)
+history = deque(maxlen=HISTORY_LIMIT)
+counter_pos, counter_neg = 0, 0
 
-model = joblib.load(MODEL_PATH)
-vectorizer = joblib.load(VECTORIZER_PATH)
+# === Tweets d'exemple ===
+tweet_examples = [
+    "Absolutely loved the flight! Smooth and comfortable.",
+    "Worst airline experience ever. Delayed and rude staff.",
+    "It was okay. Nothing spectacular but not horrible either.",
+    "Food was decent. Crew was polite.",
+    "Three hours delay. Again. Seriously Air Paradis?"
+]
 
-# === Chargement de spaCy ===
-try:
-    nlp = spacy.load("en_core_web_sm", disable=["parser", "ner"])
-except:
-    import subprocess
-    subprocess.run(["python", "-m", "spacy", "download", "en_core_web_sm"])
-    nlp = spacy.load("en_core_web_sm", disable=["parser", "ner"])
+# === Prediction runner ===
+def run_prediction(tweet):
+    global counter_pos, counter_neg
+    pred = predict_single(tweet)
+    history.appendleft(pred)
+    if pred['label'] == 1:
+        counter_pos += 1
+    elif pred['label'] == 0:
+        counter_neg += 1
 
-# === Prétraitement du texte (même pipeline que l'entraînement) ===
-def clean_text(text):
-    text = text.lower()
-    text = re.sub(r"http\S+|www\S+", "", text)
-    text = re.sub(r"@[A-Za-z0-9_]+", "", text)
-    text = emoji.replace_emoji(text, replace="")
-    text = re.sub(r"[^a-zA-Z ]", "", text)
-    text = ' '.join([word for word in text.split() if len(word) > 1])
-    return text
+    html_sentiment = f"<h2 style='color:{pred['color']};text-align:center;'>🧭 Sentiment: {pred['sentiment']} ({pred['proba']}%)</h2>"
+    return html_sentiment, pred['emoji'], pred['proba'], update_pie_chart(), update_history()
 
-def lemmatize_text(text):
-    doc = nlp(text)
-    return ' '.join([token.lemma_ for token in doc if not token.is_stop])
+# === Visualisation dynamique ===
+def update_pie_chart():
+    df = pd.DataFrame({"Sentiment": ["Positive", "Negative"], "Count": [counter_pos, counter_neg]})
+    fig = px.pie(df, values='Count', names='Sentiment', title='Live Sentiment Distribution', color='Sentiment', color_discrete_map={"Positive": "green", "Negative": "red"})
+    return fig
 
-def preprocess(text):
-    text = clean_text(text)
-    text = lemmatize_text(text)
-    return text
+def update_history():
+    df = pd.DataFrame(list(history))
+    if not df.empty:
+        return df[["text", "sentiment", "proba"]].rename(columns={"text": "Tweet", "sentiment": "Sentiment", "proba": "Confidence"})
+    else:
+        return pd.DataFrame(columns=["Tweet", "Sentiment", "Confidence"])
 
-# === Prédiction ===
-def predict_sentiment(tweet):
-    processed = preprocess(tweet)
-    vectorized = vectorizer.transform([processed])
-    prediction = model.predict(vectorized)[0]
-    sentiment = "Positif 😊" if prediction == 1 else "Négatif 😡"
-    return sentiment
+# === Feedback logging ===
+def log_feedback(feedback, comment):
+    feedback_tracker.append(feedback)
+    count_bad = list(feedback_tracker).count("👎 No")
+    if count_bad >= FEEDBACK_ALERT_THRESHOLD:
+        return "⚠️ Too many negative feedbacks recently!", update_pie_chart(), update_history()
+    return "✅ Feedback saved!", update_pie_chart(), update_history()
 
-# === Interface Gradio ===
-with gr.Blocks(title="Analyse de Sentiment - Air Paradis") as demo:
+# === Reset ===
+def reset_all():
+    return "", "", 0, update_pie_chart(), update_history(), None, "", ""
+
+# === UI ===
+with gr.Blocks(theme=gr.themes.Soft()) as demo:
     gr.Markdown("""
-    # 📊 Prédiction de Sentiment Twitter - Air Paradis
-    Entrez un tweet ci-dessous pour savoir s'il est perçu comme **positif** ou **négatif**.
+    <div style="text-align: center">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/88/Airplane_silhouette.svg/512px-Airplane_silhouette.svg.png" height="100" />
+        <h1 style="color: #1E88E5;">✈️ Air Paradis - Sentiment Monitor</h1>
+        <h4>Anticipate bad buzz with real-time tweet analysis</h4>
+    </div>
     """)
 
     with gr.Row():
-        with gr.Column():
-            tweet_input = gr.Textbox(lines=3, placeholder="Entrez un tweet ici...", label="🔢 Tweet")
-            predict_button = gr.Button("Prédire")
-        with gr.Column():
-            sentiment_output = gr.Textbox(label="🔀 Sentiment Prédit", interactive=False)
+        tweet_input = gr.Textbox(lines=3, label="💬 Tweet to Analyze", placeholder="Enter or paste a tweet...")
+        example_btn = gr.Button("🎲 Insert Example Tweet")
 
-    predict_button.click(fn=predict_sentiment, inputs=tweet_input, outputs=sentiment_output)
+    with gr.Row():
+        analyze_btn = gr.Button("🔍 Analyze Tweet")
+        reset_btn = gr.Button("♻️ Reset")
 
-# === Lancement local (optionnel) ===
+    sentiment_output = gr.HTML()
+    emoji_output = gr.Text(label="Sentiment Emoji", interactive=False)
+    confidence_slider = gr.Slider(minimum=0, maximum=100, label="🔋 Confidence", interactive=False)
+
+    with gr.Row():
+        pie_plot = gr.Plot(label="📊 Sentiment Distribution")
+
+    with gr.Accordion("🧠 Educational Panel", open=False):
+        gr.Markdown("""
+        **How does this model work?**
+        - Tweets are cleaned and lemmatized (via spaCy)
+        - Transformed into a vector using TF-IDF
+        - Classified using a Logistic Regression model
+
+        ✅ Fast and interpretable
+        ❌ Not deep-learning based (but lighter and deployable)
+        """)
+
+    with gr.Accordion("🧾 History - Last 5 Tweets", open=True):
+        history_display = gr.Dataframe(headers=["Tweet", "Sentiment", "Confidence"], interactive=False)
+
+    with gr.Accordion("📩 Feedback", open=False):
+        feedback = gr.Radio(["👍 Yes", "👎 No"], label="Was this prediction correct?")
+        comment = gr.Textbox(label="Optional comment")
+        feedback_btn = gr.Button("✅ Send Feedback")
+        feedback_log = gr.Textbox(label="Feedback Status", interactive=False)
+
+    analyze_btn.click(fn=run_prediction, inputs=tweet_input, outputs=[sentiment_output, emoji_output, confidence_slider, pie_plot, history_display])
+    example_btn.click(fn=lambda: random.choice(tweet_examples), outputs=tweet_input)
+    feedback_btn.click(fn=log_feedback, inputs=[feedback, comment], outputs=[feedback_log, pie_plot, history_display])
+    reset_btn.click(fn=reset_all, outputs=[sentiment_output, emoji_output, confidence_slider, pie_plot, history_display, feedback, comment, feedback_log])
+
 if __name__ == "__main__":
     demo.launch()

@@ -3,7 +3,7 @@
 scikit-learn
 spacy
 emoji
-gradio
+gradio>=5.23.1
 joblib
 numpy
 pandas

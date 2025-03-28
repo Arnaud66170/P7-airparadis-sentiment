@@ -7,7 +7,7 @@ gradio>=5.23.1
 joblib
 numpy
 pandas
-
+plotly
 
 # gradio==4.17.0
 # fasttext-wheel

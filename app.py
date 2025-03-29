@@ -1,5 +1,5 @@
 # === app.py ===
-# Interface Gradio principale avec visualisation, feedback, historique, CSV logging, stats, thème
+# Interface Gradio principale avec visualisation, feedback, historique, CSV logging, stats, thème jour/nuit
 
 import gradio as gr
 from shared.predict_utils import predict_single
@@ -13,11 +13,12 @@ from datetime import datetime
 import os
 
 # === Globals ===
-HISTORY_LIMIT = 15
+HISTORY_LIMIT = 5
 feedback_tracker = deque(maxlen=10)
 history = deque(maxlen=HISTORY_LIMIT)
 counter_pos, counter_neg = 0, 0
 FEEDBACK_CSV = "feedback_log.csv"
+THEME_STATE = {"mode": "light"}
 
 
 # === Tweets d'exemple ===
@@ -204,8 +205,19 @@ def reset_all_stats():
     feedback_tracker.clear()
     return update_pie_chart(), update_history(), update_feedback_stats()
 
+# === Changement de thème ===
+def toggle_theme():
+    if THEME_STATE['mode'] == 'light':
+        THEME_STATE['mode'] = 'dark'
+        return gr.themes.Base(text_primary="#f0f0f0", background_fill_primary="#1a1a1a")
+    else:
+        THEME_STATE['mode'] = 'light'
+        return gr.themes.Soft()
+
 # === UI ===
-with gr.Blocks(theme=gr.themes.Soft(), title="Sentiment UI", css="body { transition: background 0.5s ease; }") as demo:
+with gr.Blocks(theme=gr.themes.Soft(), title="Sentiment UI") as demo:
+    theme_switch_btn = gr.Button("🌞 / 🌙 Switch Theme")
+
     gr.Markdown("""
     <div style="text-align: center">
         <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/88/Airplane_silhouette.svg/512px-Airplane_silhouette.svg.png" height="100" />
@@ -260,6 +272,7 @@ with gr.Blocks(theme=gr.themes.Soft(), title="Sentiment UI", css="body { transit
     reset_stats_btn.click(fn=reset_all_stats, outputs=[pie_plot, history_display, feedback_stats])
     feedback_reset.click(fn=reset_feedback_csv, outputs=[feedback_log])
     feedback_dl.upload(fn=lambda x: x, inputs=[], outputs=[feedback_dl])
+    theme_switch_btn.click(fn=toggle_theme, outputs=None)
 
 if __name__ == "__main__":
     demo.launch()

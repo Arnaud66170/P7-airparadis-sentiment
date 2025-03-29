@@ -1,5 +1,5 @@
 # === app.py ===
-# Interface Gradio principale avec visualisation, feedback, historique + CSV feedback logging + reset stats
+# Interface Gradio principale avec visualisation, feedback, historique, CSV logging, stats, thème
 
 import gradio as gr
 from shared.predict_utils import predict_single
@@ -13,11 +13,12 @@ from datetime import datetime
 import os
 
 # === Globals ===
-HISTORY_LIMIT = 5
+HISTORY_LIMIT = 15
 feedback_tracker = deque(maxlen=10)
 history = deque(maxlen=HISTORY_LIMIT)
 counter_pos, counter_neg = 0, 0
 FEEDBACK_CSV = "feedback_log.csv"
+
 
 # === Tweets d'exemple ===
 tweet_examples = [
@@ -174,11 +175,26 @@ def save_feedback(tweet, sentiment, confidence, feedback, comment):
         if not file_exists:
             writer.writeheader()
         writer.writerow(row)
-    return "✅ Feedback enregistré avec succès.", update_pie_chart(), update_history()
+    return "✅ Feedback enregistré avec succès.", update_feedback_stats()
+
+# === Feedback stats ===
+def update_feedback_stats():
+    if not os.path.exists(FEEDBACK_CSV):
+        return "No feedback yet."
+    df = pd.read_csv(FEEDBACK_CSV)
+    count_yes = (df['user_feedback'] == '👍 Yes').sum()
+    count_no = (df['user_feedback'] == '👎 No').sum()
+    total = len(df)
+    return f"👍 Yes: {count_yes} | 👎 No: {count_no} | Total: {total}"
+
+def reset_feedback_csv():
+    if os.path.exists(FEEDBACK_CSV):
+        os.remove(FEEDBACK_CSV)
+    return "Feedback reset."
 
 # === Reset complet des stats ===
 def reset_all():
-    return "", "", 0, update_pie_chart(), update_history(), None, "", ""
+    return "", "", 0, update_pie_chart(), update_history(), None, "", "", update_feedback_stats()
 
 def reset_all_stats():
     global counter_pos, counter_neg, history, feedback_tracker
@@ -186,10 +202,10 @@ def reset_all_stats():
     counter_neg = 0
     history.clear()
     feedback_tracker.clear()
-    return update_pie_chart(), update_history()
+    return update_pie_chart(), update_history(), update_feedback_stats()
 
 # === UI ===
-with gr.Blocks(theme=gr.themes.Soft()) as demo:
+with gr.Blocks(theme=gr.themes.Soft(), title="Sentiment UI", css="body { transition: background 0.5s ease; }") as demo:
     gr.Markdown("""
     <div style="text-align: center">
         <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/88/Airplane_silhouette.svg/512px-Airplane_silhouette.svg.png" height="100" />
@@ -233,12 +249,17 @@ with gr.Blocks(theme=gr.themes.Soft()) as demo:
         comment = gr.Textbox(label="Optional comment")
         feedback_btn = gr.Button("✅ Send Feedback")
         feedback_log = gr.Textbox(label="Feedback Status", interactive=False)
+        feedback_stats = gr.Textbox(label="📊 Feedback Stats", interactive=False)
+        feedback_dl = gr.File(label="⬇️ Download feedback CSV")
+        feedback_reset = gr.Button("🧻 Reset Feedback Log")
 
     analyze_btn.click(fn=run_prediction, inputs=tweet_input, outputs=[sentiment_output, emoji_output, confidence_slider, pie_plot, history_display])
     example_btn.click(fn=lambda: random.choice(tweet_examples), outputs=tweet_input)
-    feedback_btn.click(fn=save_feedback, inputs=[tweet_input, sentiment_output, confidence_slider, feedback, comment], outputs=[feedback_log, pie_plot, history_display])
-    reset_btn.click(fn=reset_all, outputs=[sentiment_output, emoji_output, confidence_slider, pie_plot, history_display, feedback, comment, feedback_log])
-    reset_stats_btn.click(fn=reset_all_stats, outputs=[pie_plot, history_display])
+    feedback_btn.click(fn=save_feedback, inputs=[tweet_input, sentiment_output, confidence_slider, feedback, comment], outputs=[feedback_log, feedback_stats])
+    reset_btn.click(fn=reset_all, outputs=[sentiment_output, emoji_output, confidence_slider, pie_plot, history_display, feedback, comment, feedback_log, feedback_stats])
+    reset_stats_btn.click(fn=reset_all_stats, outputs=[pie_plot, history_display, feedback_stats])
+    feedback_reset.click(fn=reset_feedback_csv, outputs=[feedback_log])
+    feedback_dl.upload(fn=lambda x: x, inputs=[], outputs=[feedback_dl])
 
 if __name__ == "__main__":
     demo.launch()

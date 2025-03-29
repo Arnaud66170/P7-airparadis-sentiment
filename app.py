@@ -1,5 +1,5 @@
-# === gradio_ui_ultimate.py ===
-# Interface Gradio principale avec visualisation, feedback, historique
+# === app.py ===
+# Interface Gradio principale avec visualisation, feedback, historique + CSV feedback logging + reset stats
 
 import gradio as gr
 from shared.predict_utils import predict_single
@@ -8,12 +8,16 @@ import pandas as pd
 import plotly.express as px
 import random
 from collections import deque
+import csv
+from datetime import datetime
+import os
 
 # === Globals ===
 HISTORY_LIMIT = 5
 feedback_tracker = deque(maxlen=10)
 history = deque(maxlen=HISTORY_LIMIT)
 counter_pos, counter_neg = 0, 0
+FEEDBACK_CSV = "feedback_log.csv"
 
 # === Tweets d'exemple ===
 tweet_examples = [
@@ -153,17 +157,36 @@ def update_history():
     else:
         return pd.DataFrame(columns=["Tweet", "Sentiment", "Confidence"])
 
-# === Feedback logging ===
-def log_feedback(feedback, comment):
-    feedback_tracker.append(feedback)
-    count_bad = list(feedback_tracker).count("👎 No")
-    if count_bad >= FEEDBACK_ALERT_THRESHOLD:
-        return "⚠️ Too many negative feedbacks recently!", update_pie_chart(), update_history()
-    return "✅ Feedback saved!", update_pie_chart(), update_history()
+# === Feedback logging (enregistrement CSV) ===
+def save_feedback(tweet, sentiment, confidence, feedback, comment):
+    timestamp = datetime.now().isoformat()
+    row = {
+        "tweet": tweet,
+        "predicted_label": sentiment,
+        "proba": confidence,
+        "user_feedback": feedback,
+        "comment": comment,
+        "timestamp": timestamp
+    }
+    file_exists = os.path.isfile(FEEDBACK_CSV)
+    with open(FEEDBACK_CSV, mode='a', newline='', encoding='utf-8') as f:
+        writer = csv.DictWriter(f, fieldnames=row.keys())
+        if not file_exists:
+            writer.writeheader()
+        writer.writerow(row)
+    return "✅ Feedback enregistré avec succès.", update_pie_chart(), update_history()
 
-# === Reset ===
+# === Reset complet des stats ===
 def reset_all():
     return "", "", 0, update_pie_chart(), update_history(), None, "", ""
+
+def reset_all_stats():
+    global counter_pos, counter_neg, history, feedback_tracker
+    counter_pos = 0
+    counter_neg = 0
+    history.clear()
+    feedback_tracker.clear()
+    return update_pie_chart(), update_history()
 
 # === UI ===
 with gr.Blocks(theme=gr.themes.Soft()) as demo:
@@ -182,6 +205,7 @@ with gr.Blocks(theme=gr.themes.Soft()) as demo:
     with gr.Row():
         analyze_btn = gr.Button("🔍 Analyze Tweet")
         reset_btn = gr.Button("♻️ Reset")
+        reset_stats_btn = gr.Button("🧹 Reset Stats")
 
     sentiment_output = gr.HTML()
     emoji_output = gr.Text(label="Sentiment Emoji", interactive=False)
@@ -212,8 +236,9 @@ with gr.Blocks(theme=gr.themes.Soft()) as demo:
 
     analyze_btn.click(fn=run_prediction, inputs=tweet_input, outputs=[sentiment_output, emoji_output, confidence_slider, pie_plot, history_display])
     example_btn.click(fn=lambda: random.choice(tweet_examples), outputs=tweet_input)
-    feedback_btn.click(fn=log_feedback, inputs=[feedback, comment], outputs=[feedback_log, pie_plot, history_display])
+    feedback_btn.click(fn=save_feedback, inputs=[tweet_input, sentiment_output, confidence_slider, feedback, comment], outputs=[feedback_log, pie_plot, history_display])
     reset_btn.click(fn=reset_all, outputs=[sentiment_output, emoji_output, confidence_slider, pie_plot, history_display, feedback, comment, feedback_log])
+    reset_stats_btn.click(fn=reset_all_stats, outputs=[pie_plot, history_display])
 
 if __name__ == "__main__":
     demo.launch()

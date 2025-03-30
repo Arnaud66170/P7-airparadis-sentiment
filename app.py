@@ -189,10 +189,16 @@ def save_feedback(tweet, sentiment, confidence, feedback, comment):
         alert_history[:] = recent_alerts
 
         if len(recent_alerts) >= 3:
-            # vérifier si dernière alerte date de +10 min
-            if not hasattr(save_feedback, "last_alert") or now - save_feedback.last_alert > timedelta(minutes=ALERT_COOLDOWN_MINUTES):
-                send_alert_email("⚠️ Trop de feedbacks négatifs sur Air Paradis", f"{len(recent_alerts)} feedbacks négatifs reçus depuis {ALERT_WINDOW_MINUTES} minutes.")
-                save_feedback.last_alert = now
+    if not hasattr(save_feedback, "last_alert") or now - save_feedback.last_alert > timedelta(minutes=ALERT_COOLDOWN_MINUTES):
+        try:
+            send_alert_email(
+                "⚠️ Trop de feedbacks négatifs sur Air Paradis",
+                f"{len(recent_alerts)} feedbacks négatifs reçus depuis {ALERT_WINDOW_MINUTES} minutes."
+            )
+            print("[ALERTE MAIL] Mail envoyé avec succès.")
+            save_feedback.last_alert = now
+        except Exception as e:
+            print(f"[ERREUR ENVOI MAIL] {e}")
 
     return "✅ Feedback enregistré avec succès.", update_feedback_stats()
 

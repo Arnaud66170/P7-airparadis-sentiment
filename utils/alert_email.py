@@ -15,7 +15,7 @@ def send_alert_email(subject, body):
     msg["From"] = sender
     msg["To"] = receiver
 
-    with smtplib.SMTP(smtp_server, smtp_port) as server:
+    with smtplib.SMTP(smtp_server, smtp_port, timeout=10) as server:
         server.starttls()
         server.login(sender, password)
         server.send_message(msg)

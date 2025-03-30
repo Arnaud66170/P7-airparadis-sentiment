@@ -1,21 +1,30 @@
 import os
-import smtplib
-from email.message import EmailMessage
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
 
-def send_alert_email(subject, body):
-    smtp_server = os.getenv("SMTP_SERVER")
-    smtp_port = int(os.getenv("SMTP_PORT"))
-    sender = os.getenv("EMAIL_SENDER")
-    password = os.getenv("EMAIL_PASSWORD")
-    receiver = os.getenv("EMAIL_RECEIVER")
+def send_alert_email(nb_bad_feedbacks):
+    api_key = os.getenv("SENDGRID_API_KEY")
+    sender = os.getenv("SENDGRID_SENDER")
+    receiver = os.getenv("SENDGRID_RECEIVER")
+    template_id = os.getenv("SENDGRID_TEMPLATE_ID")
 
-    msg = EmailMessage()
-    msg.set_content(body)
-    msg["Subject"] = subject
-    msg["From"] = sender
-    msg["To"] = receiver
+    if not all([api_key, sender, receiver, template_id]):
+        print("❌ Erreur : une ou plusieurs variables d’environnement sont manquantes.")
+        return
 
-    with smtplib.SMTP(smtp_server, smtp_port, timeout=10) as server:
-        server.starttls()
-        server.login(sender, password)
-        server.send_message(msg)
+    message = Mail(
+        from_email=sender,
+        to_emails=receiver
+    )
+    message.template_id = template_id
+    message.dynamic_template_data = {
+        "nb_feedbacks": nb_bad_feedbacks
+    }
+
+    try:
+        sg = SendGridAPIClient(api_key)
+        response = sg.send(message)
+        print(f"✅ Mail envoyé ! Status code: {response.status_code}")
+    except Exception as e:
+        print("❌ Erreur envoi email avec SendGrid :", e)
+

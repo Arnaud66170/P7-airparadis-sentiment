@@ -8,6 +8,8 @@ joblib
 numpy
 pandas
 plotly
+sendgrid
+
 
 # gradio==4.17.0
 # fasttext-wheel

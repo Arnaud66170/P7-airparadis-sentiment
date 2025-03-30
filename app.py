@@ -167,14 +167,17 @@ def update_history():
 # === Feedback logging (enregistrement CSV + alerte) ===
 def save_feedback(tweet, sentiment, confidence, feedback, comment):
     timestamp = datetime.now()
+    pred_label = "Positive" if "Positive" in sentiment else "Negative"
+
     row = {
         "tweet": tweet,
-        "predicted_label": "Positive" if "Positive" in sentiment else "Negative",
+        "predicted_label": pred_label,
         "proba": confidence,
         "user_feedback": feedback,
         "comment": comment,
         "timestamp": timestamp.isoformat()
     }
+
     file_exists = os.path.isfile(FEEDBACK_CSV)
     with open(FEEDBACK_CSV, mode='a', newline='', encoding='utf-8') as f:
         writer = csv.DictWriter(f, fieldnames=row.keys())
@@ -182,7 +185,7 @@ def save_feedback(tweet, sentiment, confidence, feedback, comment):
             writer.writeheader()
         writer.writerow(row)
 
-    # Alerte mail si 3 feedbacks négatifs dans les 5 dernières minutes
+    # === Alerte mail si 3 feedbacks négatifs dans les 5 dernières minutes ===
     if feedback == "👎 No":
         alert_history.append(timestamp)
         now = datetime.now()
@@ -192,20 +195,17 @@ def save_feedback(tweet, sentiment, confidence, feedback, comment):
         if len(recent_alerts) >= 3:
             if not hasattr(save_feedback, "last_alert") or now - save_feedback.last_alert > timedelta(minutes=ALERT_COOLDOWN_MINUTES):
                 try:
-                    print("[TEST] Envoi mail imminent...")  # DEBUG
-                    send_alert_email(
-                        "⚠️ Trop de feedbacks négatifs sur Air Paradis",
-                        f"{len(recent_alerts)} feedbacks négatifs reçus depuis {ALERT_WINDOW_MINUTES} minutes."
-                    )
-                    print("[ALERTE MAIL] Mail envoyé avec succès.")
+                    from utils.alert_email import send_alert_email
+                    print("[ALERTE] Envoi mail via SendGrid...")
+                    send_alert_email(len(recent_alerts))
                     save_feedback.last_alert = now
                 except Exception as e:
-                    import traceback
-                    print("[ERREUR ENVOI MAIL]")
+                    print("❌ Erreur envoi email :", e)
                     traceback.print_exc()
-                    return f"⚠️ Erreur lors de l'envoi de l'e-mail : {e}", update_feedback_stats()
+                    return f"⚠️ Erreur d'alerte mail : {e}", update_feedback_stats()
 
     return "✅ Feedback enregistré avec succès.", update_feedback_stats()
+
 
 
 # === Feedback stats ===

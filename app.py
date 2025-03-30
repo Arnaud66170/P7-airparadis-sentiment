@@ -13,6 +13,7 @@ from datetime import datetime, timedelta
 import os
 from utils.alert_email import send_alert_email
 
+
 # === Globals ===
 HISTORY_LIMIT = 5
 feedback_tracker = deque(maxlen=10)
@@ -191,6 +192,7 @@ def save_feedback(tweet, sentiment, confidence, feedback, comment):
         if len(recent_alerts) >= 3:
             if not hasattr(save_feedback, "last_alert") or now - save_feedback.last_alert > timedelta(minutes=ALERT_COOLDOWN_MINUTES):
                 try:
+                    print("[TEST] Envoi mail imminent...")  # DEBUG
                     send_alert_email(
                         "⚠️ Trop de feedbacks négatifs sur Air Paradis",
                         f"{len(recent_alerts)} feedbacks négatifs reçus depuis {ALERT_WINDOW_MINUTES} minutes."
@@ -198,19 +200,29 @@ def save_feedback(tweet, sentiment, confidence, feedback, comment):
                     print("[ALERTE MAIL] Mail envoyé avec succès.")
                     save_feedback.last_alert = now
                 except Exception as e:
-                    print(f"[ERREUR ENVOI MAIL] {e}")
+                    import traceback
+                    print("[ERREUR ENVOI MAIL]")
+                    traceback.print_exc()
+                    return f"⚠️ Erreur lors de l'envoi de l'e-mail : {e}", update_feedback_stats()
 
     return "✅ Feedback enregistré avec succès.", update_feedback_stats()
+
 
 # === Feedback stats ===
 def update_feedback_stats():
     if not os.path.exists(FEEDBACK_CSV):
         return "No feedback yet."
-    df = pd.read_csv(FEEDBACK_CSV)
-    count_yes = (df['user_feedback'] == '👍 Yes').sum()
-    count_no = (df['user_feedback'] == '👎 No').sum()
-    total = len(df)
-    return f"👍 Yes: {count_yes} | 👎 No: {count_no} | Total: {total}"
+    
+    try:
+        df = pd.read_csv(FEEDBACK_CSV)
+        if 'user_feedback' not in df.columns:
+            return "No feedback data yet."
+        count_yes = (df['user_feedback'] == '👍 Yes').sum()
+        count_no = (df['user_feedback'] == '👎 No').sum()
+        total = len(df)
+        return f"👍 Yes: {count_yes} | 👎 No: {count_no} | Total: {total}"
+    except Exception as e:
+        return f"⚠️ Error reading feedback stats: {e}"
 
 def reset_feedback_csv():
     if os.path.exists(FEEDBACK_CSV):

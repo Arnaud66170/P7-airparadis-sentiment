@@ -1,1 +1,7 @@
-2025-03-28T09:11:33.532467,👍 Yes,
+tweet,predicted_label,proba,user_feedback,comment,timestamp
+Why do I even bother booking here anymore?,<h2 style='color:red;text-align:center;'>🧭 Sentiment: Negative (76.8%)</h2>,76.8,👎 No,,2025-03-30T11:24:53.250288
+Three hours delay. Again. Seriously Air Paradis?,<h2 style='color:red;text-align:center;'>🧭 Sentiment: Negative (86.0%)</h2>,86.0,👎 No,,2025-03-30T11:25:02.971461
+Worst airline experience ever. Delayed and rude staff.,<h2 style='color:red;text-align:center;'>🧭 Sentiment: Negative (79.2%)</h2>,79.2,👎 No,,2025-03-30T11:25:10.784475
+Another delay with Air Paradis. Getting ridiculous.,<h2 style='color:red;text-align:center;'>🧭 Sentiment: Negative (83.5%)</h2>,83.5,👎 No,,2025-03-30T11:26:28.859529
+Another delay with Air Paradis. Getting ridiculous.,<h2 style='color:red;text-align:center;'>🧭 Sentiment: Negative (83.5%)</h2>,83.5,👎 No,,2025-03-30T11:26:30.678843
+"No WiFi, rude attendants, and terrible food.",<h2 style='color:red;text-align:center;'>🧭 Sentiment: Negative (88.1%)</h2>,88.1,👎 No,,2025-03-30T11:26:37.395863

@@ -169,7 +169,7 @@ def save_feedback(tweet, sentiment, confidence, feedback, comment):
     timestamp = datetime.now()
     row = {
         "tweet": tweet,
-        "predicted_label": sentiment,
+        "predicted_label": "Positive" if "Positive" in sentiment else "Negative",
         "proba": confidence,
         "user_feedback": feedback,
         "comment": comment,

@@ -1,5 +1,5 @@
 # === app.py ===
-# Interface Gradio principale avec visualisation, feedback, historique, CSV logging, stats, thème jour/nuit
+# Interface Gradio principale avec visualisation, feedback, historique, CSV logging, stats, thème jour/nuit + alerte mail
 
 import gradio as gr
 from shared.predict_utils import predict_single
@@ -9,8 +9,9 @@ import plotly.express as px
 import random
 from collections import deque
 import csv
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
+from utils.alert_email import send_alert_email
 
 # === Globals ===
 HISTORY_LIMIT = 5
@@ -19,6 +20,9 @@ history = deque(maxlen=HISTORY_LIMIT)
 counter_pos, counter_neg = 0, 0
 FEEDBACK_CSV = "feedback_log.csv"
 THEME_STATE = {"mode": "light"}
+ALERT_WINDOW_MINUTES = 5
+ALERT_COOLDOWN_MINUTES = 10
+alert_history = []
 
 
 # === Tweets d'exemple ===
@@ -159,16 +163,16 @@ def update_history():
     else:
         return pd.DataFrame(columns=["Tweet", "Sentiment", "Confidence"])
 
-# === Feedback logging (enregistrement CSV) ===
+# === Feedback logging (enregistrement CSV + alerte) ===
 def save_feedback(tweet, sentiment, confidence, feedback, comment):
-    timestamp = datetime.now().isoformat()
+    timestamp = datetime.now()
     row = {
         "tweet": tweet,
         "predicted_label": sentiment,
         "proba": confidence,
         "user_feedback": feedback,
         "comment": comment,
-        "timestamp": timestamp
+        "timestamp": timestamp.isoformat()
     }
     file_exists = os.path.isfile(FEEDBACK_CSV)
     with open(FEEDBACK_CSV, mode='a', newline='', encoding='utf-8') as f:
@@ -176,6 +180,20 @@ def save_feedback(tweet, sentiment, confidence, feedback, comment):
         if not file_exists:
             writer.writeheader()
         writer.writerow(row)
+
+    # Alerte mail si 3 feedbacks négatifs dans les 5 dernières minutes
+    if feedback == "👎 No":
+        alert_history.append(timestamp)
+        now = datetime.now()
+        recent_alerts = [t for t in alert_history if now - t < timedelta(minutes=ALERT_WINDOW_MINUTES)]
+        alert_history[:] = recent_alerts
+
+        if len(recent_alerts) >= 3:
+            # vérifier si dernière alerte date de +10 min
+            if not hasattr(save_feedback, "last_alert") or now - save_feedback.last_alert > timedelta(minutes=ALERT_COOLDOWN_MINUTES):
+                send_alert_email("⚠️ Trop de feedbacks négatifs sur Air Paradis", f"{len(recent_alerts)} feedbacks négatifs reçus depuis {ALERT_WINDOW_MINUTES} minutes.")
+                save_feedback.last_alert = now
+
     return "✅ Feedback enregistré avec succès.", update_feedback_stats()
 
 # === Feedback stats ===
@@ -198,11 +216,12 @@ def reset_all():
     return "", "", 0, update_pie_chart(), update_history(), None, "", "", update_feedback_stats()
 
 def reset_all_stats():
-    global counter_pos, counter_neg, history, feedback_tracker
+    global counter_pos, counter_neg, history, feedback_tracker, alert_history
     counter_pos = 0
     counter_neg = 0
     history.clear()
     feedback_tracker.clear()
+    alert_history.clear()
     return update_pie_chart(), update_history(), update_feedback_stats()
 
 # === Changement de thème ===

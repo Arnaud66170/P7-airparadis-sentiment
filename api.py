@@ -48,4 +48,11 @@ def predict(tweet: Tweet):
     vectorized = vectorizer.transform([processed])
     prediction = model.predict(vectorized)[0]
     proba = model.predict_proba(vectorized)[0][prediction]
-    return {"label": int(prediction), "proba": round(proba, 4)}
+
+    sentiment = LABELS[prediction]  # Ajouté ici
+
+    return {
+        "label": int(prediction),
+        "sentiment": sentiment,
+        "proba": round(proba, 4)
+    }

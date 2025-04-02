@@ -103,14 +103,6 @@ def update_history():
     else:
         return pd.DataFrame(columns=["Tweet", "Sentiment", "Confidence"])
 
-# === Fonction threadée pour l'envoi de l'alerte ===
-def threaded_send_alert(count):
-    print(f"[THREAD] Lancement envoi mail pour {count} feedbacks.")
-    try:
-        send_alert_email(count)
-    except Exception as e:
-        print(f"[THREAD] ❌ Erreur dans le thread d’envoi email : {e}")
-
 
 # === Feedback logging (CSV + alerte) ===
 def save_feedback(tweet, sentiment, confidence, feedback, comment):
@@ -143,10 +135,18 @@ def save_feedback(tweet, sentiment, confidence, feedback, comment):
 
         if len(recent_alerts) >= FEEDBACK_ALERT_THRESHOLD:
             if not hasattr(save_feedback, "last_alert") or now - save_feedback.last_alert > timedelta(minutes=ALERT_COOLDOWN_MINUTES):
-                print("[ALERTE] Envoi mail via Gmail (thread)...")
-                thread = threading.Thread(target=threaded_send_alert, args=(len(recent_alerts),), daemon=True)
-                thread.start()
-                save_feedback.last_alert = now
+                # === Fonction threadée pour l'envoi de l'alerte ===
+                def threaded_send_alert(count):
+                    print(f"[THREAD] Lancement envoi mail pour {count} feedbacks.")
+                    try:
+                        send_alert_email(count)
+                    except Exception as e:
+                        print(f"[THREAD] ❌ Erreur dans le thread d’envoi email : {e}")
+
+print("[ALERTE] Envoi mail via Gmail (thread)...")
+thread = threading.Thread(target=threaded_send_alert, args=(len(recent_alerts),), daemon=True)
+thread.start()
+save_feedback.last_alert = now
 
     return "✅ Feedback enregistré avec succès.", update_feedback_stats()
 

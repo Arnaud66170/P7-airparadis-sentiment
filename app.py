@@ -128,6 +128,8 @@ def save_feedback(tweet, sentiment, confidence, feedback, comment):
         now = datetime.now()
         recent_alerts = [t for t in alert_history if now - t < timedelta(minutes=ALERT_WINDOW_MINUTES)]
         alert_history[:] = recent_alerts
+        print(f"[DEBUG] Feedbacks récents (dernières 5 min) : {len(recent_alerts)}")
+
 
         if len(recent_alerts) >= FEEDBACK_ALERT_THRESHOLD:
             if not hasattr(save_feedback, "last_alert") or now - save_feedback.last_alert > timedelta(minutes=ALERT_COOLDOWN_MINUTES):

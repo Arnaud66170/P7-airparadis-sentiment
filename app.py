@@ -2,8 +2,6 @@
 # Interface Gradio principale avec visualisation, feedback, historique, CSV logging, stats, thème jour/nuit + alerte mail
 
 import gradio as gr
-from shared.predict_utils import predict_single
-from config import FEEDBACK_ALERT_THRESHOLD
 import pandas as pd
 import plotly.express as px
 import random
@@ -12,6 +10,17 @@ import csv
 from datetime import datetime, timedelta
 import os
 import traceback
+
+# ✅ Import prédiction
+from shared.predict_utils import predict_single
+
+# ✅ Import dynamique pour config (local vs Hugging Face)
+try:
+    from huggingface_api.config import FEEDBACK_ALERT_THRESHOLD
+except ModuleNotFoundError:
+    from config import FEEDBACK_ALERT_THRESHOLD
+
+# ✅ Import alerte email
 from utils.alert_email import send_alert_email
 
 # === Globals ===
@@ -80,14 +89,15 @@ def run_prediction(tweet):
 # === Visualisation dynamique ===
 def update_pie_chart():
     df = pd.DataFrame({"Sentiment": ["Positive", "Negative"], "Count": [counter_pos, counter_neg]})
-    fig = px.pie(df, values='Count', names='Sentiment', title='Live Sentiment Distribution', color='Sentiment',
-                 color_discrete_map={"Positive": "green", "Negative": "red"})
+    fig = px.pie(df, values='Count', names='Sentiment', title='Live Sentiment Distribution',
+                 color='Sentiment', color_discrete_map={"Positive": "green", "Negative": "red"})
     return fig
 
 def update_history():
     df = pd.DataFrame(list(history))
     if not df.empty and all(col in df.columns for col in ["text", "sentiment", "proba"]):
-        return df[["text", "sentiment", "proba"]].rename(columns={"text": "Tweet", "sentiment": "Sentiment", "proba": "Confidence"})
+        return df[["text", "sentiment", "proba"]].rename(
+            columns={"text": "Tweet", "sentiment": "Sentiment", "proba": "Confidence"})
     else:
         return pd.DataFrame(columns=["Tweet", "Sentiment", "Confidence"])
 
@@ -198,7 +208,6 @@ with gr.Blocks(theme=gr.themes.Soft(), title="Sentiment UI") as demo:
     sentiment_output = gr.HTML()
     emoji_output = gr.Text(label="Sentiment Emoji", interactive=False)
     confidence_slider = gr.Slider(minimum=0, maximum=100, label="🔋 Confidence", interactive=False)
-
     pie_plot = gr.Plot(label="📊 Sentiment Distribution")
 
     with gr.Accordion("🧠 Educational Panel", open=False):

@@ -1,25 +1,31 @@
 import sys
 import os
+import requests
 
-# Ajout du path projet pour pouvoir importer huggingface_api.config
+# Ajout du path projet pour pouvoir importer config depuis n’importe où
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
-import requests
-from huggingface_api.config import API_URL  # <- URL locale définie dans config.py
+# ✅ On importe l'URL Cloud Hugging Face
+from huggingface_api.config import API_URL_HF
 
-def test_local_prediction():
+def test_cloud_prediction():
     payload = {
-        "text": "This flight was absolutely horrible!"
+        "data": ["This flight was absolutely horrible!"]
     }
 
-    response = requests.post(API_URL, json=payload)
+    response = requests.post(API_URL_HF, json=payload)
 
+    # === Vérification du statut HTTP ===
     assert response.status_code == 200
-    result = response.json()
 
-    assert "label" in result
-    assert result["label"] in [0, 1]
-    assert "proba" in result
+    # === Vérification de la structure du retour ===
+    result = response.json()
+    assert "data" in result
+    assert isinstance(result["data"], list)
+    assert len(result["data"]) > 0
+
+    print("✅ Résultat reçu depuis Hugging Face Space:", result["data"])
+
 
 
 # commande gitbash test cloud :

@@ -6,7 +6,13 @@ import joblib
 import re
 import emoji
 import spacy
-from huggingface_api.config import LABELS, EMOJIS, COLORS, MODEL_PATH, VECTORIZER_PATH
+
+try:
+    # ✅ Local avec structure huggingface_api/
+    from huggingface_api.config import LABELS, EMOJIS, COLORS, MODEL_PATH, VECTORIZER_PATH
+except ModuleNotFoundError:
+    # ✅ Hugging Face Space ou exécution depuis /app
+    from config import LABELS, EMOJIS, COLORS, MODEL_PATH, VECTORIZER_PATH
 
 # === Chargement du modèle et vectorizer ===
 model = joblib.load(MODEL_PATH)

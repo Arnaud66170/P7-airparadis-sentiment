@@ -4,7 +4,12 @@ import re
 import emoji
 import spacy
 from pydantic import BaseModel
-from config import MODEL_PATH, VECTORIZER_PATH, LABELS
+
+# ✅ Import dynamique pour compatibilité local + Hugging Face Space
+try:
+    from huggingface_api.config import MODEL_PATH, VECTORIZER_PATH, LABELS
+except ModuleNotFoundError:
+    from config import MODEL_PATH, VECTORIZER_PATH, LABELS
 
 # === Chargement modèle et vectorizer ===
 model = joblib.load(MODEL_PATH)

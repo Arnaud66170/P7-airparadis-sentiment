@@ -8,8 +8,9 @@ sdk_version: "5.23.1"
 app_file: app.py
 pinned: false
 ---
+![Tests](https://github.com/arnaud66170/P7-airparadis-sentiment/actions/workflows/run_pytest.yml/badge.svg)
 
-# 🧠 Air Paradis - Analyse de Sentiment Twitter
+# Air Paradis - Analyse de Sentiment Twitter
 
 Bienvenue sur l'application **d'analyse de sentiment** développée pour la compagnie aérienne **Air Paradis**, dans le cadre du projet P7 du parcours Data Scientist - MLOps.
 
@@ -17,7 +18,7 @@ Cette application permet de prédire le **sentiment (positif ou négatif)** d’
 
 ---
 
-## 🎯 Objectifs du projet
+## Objectifs du projet
 
 - Mettre en œuvre un modèle de Machine Learning léger et performant
 - Créer une interface simple d’utilisation pour des équipes non techniques
@@ -25,7 +26,7 @@ Cette application permet de prédire le **sentiment (positif ou négatif)** d’
 
 ---
 
-## 🧩 Modèle retenu
+## Modèle retenu
 
 - **Modèle** : Régression Logistique (Logistic Regression)
 - **Vectorisation** : TF-IDF (Term Frequency - Inverse Document Frequency)
@@ -39,7 +40,7 @@ Ce modèle a été sélectionné pour son excellent **rapport performance/simpli
 
 ---
 
-## 🛠️ Technologies utilisées
+## Technologies utilisées
 
 - **Langage** : Python 3
 - **Machine Learning** : scikit-learn
@@ -49,7 +50,7 @@ Ce modèle a été sélectionné pour son excellent **rapport performance/simpli
 
 ---
 
-## 🖥️ Utilisation de l’application
+## Utilisation de l’application
 
 1. Renseignez un tweet dans le champ texte prévu à cet effet
 2. Cliquez sur **"Prédire"**
@@ -57,7 +58,7 @@ Ce modèle a été sélectionné pour son excellent **rapport performance/simpli
 
 ---
 
-## 📌 Limites actuelles
+## Limites actuelles
 
 - Analyse binaire uniquement (positif/négatif)
 - Dataset généraliste (pas spécifique à Air Paradis)
@@ -65,7 +66,7 @@ Ce modèle a été sélectionné pour son excellent **rapport performance/simpli
 
 ---
 
-## 🔭 Pistes d’amélioration
+## Pistes d’amélioration
 
 - Ajout d’une base de tweets réels mentionnant Air Paradis
 - Intégration d’une option de feedback pour signaler les erreurs de prédiction
@@ -74,7 +75,7 @@ Ce modèle a été sélectionné pour son excellent **rapport performance/simpli
 
 ---
 
-## 📁 Fichiers présents
+## Fichiers présents
 
 - `app.py` : Interface Gradio principale
 - `model/` : Contient le modèle entraîné (`log_reg_model.pkl`) et le vectorizer (`tfidf_vectorizer.pkl`)
@@ -82,7 +83,7 @@ Ce modèle a été sélectionné pour son excellent **rapport performance/simpli
 
 ---
 
-## 🧑‍💻 Auteur
+## Auteur
 
 Projet 7 réalisé par Arnaud CAILLE – Parcours AI Engineer – OpenClassrooms 2025
 

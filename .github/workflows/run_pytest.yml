@@ -24,6 +24,9 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
+    - name: ✅ Définir PYTHONPATH
+    run: echo "PYTHONPATH=." >> $GITHUB_ENV
+
     - name: ✅ Lancer tous les tests Pytest + couverture
       run: |
         pytest tests/

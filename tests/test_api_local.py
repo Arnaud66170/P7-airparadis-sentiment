@@ -1,7 +1,6 @@
 import requests
 
 def test_local_prediction():
-    # URL locale (API FastAPI lancée via uvicorn)
     url = "http://127.0.0.1:8000/predict"
 
     payload = {
@@ -13,8 +12,14 @@ def test_local_prediction():
     assert response.status_code == 200
     result = response.json()
 
-    assert "prediction" in result
-    assert result["prediction"] in [0, 1]
+    # Vérifie les bonnes clés attendues dans la réponse
+    expected_keys = ["label", "proba"]
+    for key in expected_keys:
+        assert key in result
+
+    assert result["label"] in [0, 1]
+    assert 0.0 <= result["proba"] <= 1.0
+
 
 
 # commandes gitbash test local :

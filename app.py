@@ -103,6 +103,15 @@ def update_history():
     else:
         return pd.DataFrame(columns=["Tweet", "Sentiment", "Confidence"])
 
+# === Fonction threadée pour l'envoi de l'alerte ===
+def threaded_send_alert(count):
+    print(f"[THREAD] Lancement envoi mail pour {count} feedbacks.")
+    try:
+        send_alert_email(count)
+    except Exception as e:
+        print(f"[THREAD] ❌ Erreur dans le thread d’envoi email : {e}")
+
+
 # === Feedback logging (CSV + alerte) ===
 def save_feedback(tweet, sentiment, confidence, feedback, comment):
     timestamp = datetime.now()
@@ -132,17 +141,12 @@ def save_feedback(tweet, sentiment, confidence, feedback, comment):
         alert_history[:] = recent_alerts
         print(f"[DEBUG] Feedbacks récents (dernières 5 min) : {len(recent_alerts)}")
 
-
         if len(recent_alerts) >= FEEDBACK_ALERT_THRESHOLD:
             if not hasattr(save_feedback, "last_alert") or now - save_feedback.last_alert > timedelta(minutes=ALERT_COOLDOWN_MINUTES):
-                try:
-                    print("[ALERTE] Envoi mail via Gmail (thread)...")
-                    threading.Thread(target=send_alert_email, args=(len(recent_alerts),), daemon=True).start()
-                    save_feedback.last_alert = now
-                except Exception as e:
-                    print("❌ Erreur envoi email :", e)
-                    traceback.print_exc()
-                    return f"⚠️ Erreur d'alerte mail : {e}", update_feedback_stats()
+                print("[ALERTE] Envoi mail via Gmail (thread)...")
+                thread = threading.Thread(target=threaded_send_alert, args=(len(recent_alerts),), daemon=True)
+                thread.start()
+                save_feedback.last_alert = now
 
     return "✅ Feedback enregistré avec succès.", update_feedback_stats()
 
@@ -249,13 +253,3 @@ with gr.Blocks(theme=gr.themes.Soft(), title="Sentiment UI") as demo:
 
 if __name__ == "__main__":
     demo.launch()
-
-if __name__ == "__main__":
-    demo.launch()
-
-    # ✅ TEST FORCÉ D'ENVOI D'ALERTE
-    print("[TEST] Envoi alerte manuelle...")
-    try:
-        send_alert_email(3)
-    except Exception as e:
-        print("[ERREUR ENVOI TEST] :", e)

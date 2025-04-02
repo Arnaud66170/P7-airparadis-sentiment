@@ -143,10 +143,10 @@ def save_feedback(tweet, sentiment, confidence, feedback, comment):
                     except Exception as e:
                         print(f"[THREAD] ❌ Erreur dans le thread d’envoi email : {e}")
 
-print("[ALERTE] Envoi mail via Gmail (thread)...")
-thread = threading.Thread(target=threaded_send_alert, args=(len(recent_alerts),), daemon=True)
-thread.start()
-save_feedback.last_alert = now
+                print("[ALERTE] Envoi mail via Gmail (thread)...")
+                thread = threading.Thread(target=threaded_send_alert, args=(len(recent_alerts),), daemon=True)
+                thread.start()
+                save_feedback.last_alert = now
 
     return "✅ Feedback enregistré avec succès.", update_feedback_stats()
 

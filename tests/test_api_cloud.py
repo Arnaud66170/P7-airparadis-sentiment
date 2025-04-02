@@ -1,24 +1,25 @@
 import sys
 import os
+
+# Ajout du path projet pour pouvoir importer huggingface_api.config
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
 import requests
+from huggingface_api.config import API_URL  # <- URL locale définie dans config.py
 
-def test_cloud_prediction():
-    # URL du Hugging Face Space Gradio → endpoint /predict
-    url = "https://arnaud66170--p7-airparadis-sentiment.hf.space/predict"
-
+def test_local_prediction():
     payload = {
-        "text": "I had an amazing experience with your airline!"
+        "text": "This flight was absolutely horrible!"
     }
 
-    response = requests.post(url, json=payload)
+    response = requests.post(API_URL, json=payload)
 
     assert response.status_code == 200
     result = response.json()
 
-    assert "prediction" in result
-    assert result["prediction"] in [0, 1]
+    assert "label" in result
+    assert result["label"] in [0, 1]
+    assert "proba" in result
 
 
 # commande gitbash test cloud :

@@ -10,7 +10,7 @@ pandas
 plotly
 sendgrid
 pytest-cov          # plugin Pytest pour générer un rapport de couverture de code (quelles lignes sont testées)
-
+sendgrid
 
 
 # gradio==4.17.0
@@ -22,4 +22,4 @@ pytest-cov          # plugin Pytest pour générer un rapport de couverture de c
 # cython==0.29.21
 # joblib==0.17.0
 # scipy==1.7.3
-# numpy==1.21.5
+# numpy==1.21.5sendgrid

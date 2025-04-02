@@ -10,6 +10,8 @@ import csv
 from datetime import datetime, timedelta
 import os
 import traceback
+import threading
+
 
 # ✅ Import prédiction
 from shared.predict_utils import predict_single
@@ -134,8 +136,8 @@ def save_feedback(tweet, sentiment, confidence, feedback, comment):
         if len(recent_alerts) >= FEEDBACK_ALERT_THRESHOLD:
             if not hasattr(save_feedback, "last_alert") or now - save_feedback.last_alert > timedelta(minutes=ALERT_COOLDOWN_MINUTES):
                 try:
-                    print("[ALERTE] Envoi mail via SendGrid...")
-                    send_alert_email(len(recent_alerts))
+                    print("[ALERTE] Envoi mail via Gmail (thread)...")
+                    threading.Thread(target=send_alert_email, args=(len(recent_alerts),), daemon=True).start()
                     save_feedback.last_alert = now
                 except Exception as e:
                     print("❌ Erreur envoi email :", e)

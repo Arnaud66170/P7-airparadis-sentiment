@@ -7,8 +7,10 @@ import os
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # 📁 Chemins vers les modèles (résoud dynamiquement le chemin absolu)
-MODEL_PATH = os.path.join(BASE_DIR, "model", "log_reg_model.pkl")
-VECTORIZER_PATH = os.path.join(BASE_DIR, "model", "tfidf_vectorizer.pkl")
+# MODEL_PATH = os.path.join(BASE_DIR, "model", "log_reg_model.pkl")
+# VECTORIZER_PATH = os.path.join(BASE_DIR, "model", "tfidf_vectorizer.pkl")
+MODEL_PATH = "huggingface_api/model/log_reg_model.pkl"
+VECTORIZER_PATH = "huggingface_api/model/tfidf_vectorizer.pkl"
 
 # 🌐 URL de l'API FastAPI
 API_URL = "http://localhost:8000/predict"

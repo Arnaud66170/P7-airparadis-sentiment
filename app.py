@@ -116,7 +116,7 @@ def save_feedback(tweet, sentiment, confidence, feedback, comment):
     }
 
     file_exists = os.path.isfile(FEEDBACK_CSV)
-    with open(FEEDBACK_CSV, mode='a', newline='', encoding='utf-8') as f:
+    with open(FEEDBACK_CSV, mode = 'a', newline = '', encoding = 'utf-8') as f:
         writer = csv.DictWriter(f, fieldnames=row.keys())
         if not file_exists:
             writer.writeheader()
@@ -245,3 +245,13 @@ with gr.Blocks(theme=gr.themes.Soft(), title="Sentiment UI") as demo:
 
 if __name__ == "__main__":
     demo.launch()
+
+if __name__ == "__main__":
+    demo.launch()
+
+    # ✅ TEST FORCÉ D'ENVOI D'ALERTE
+    print("[TEST] Envoi alerte manuelle...")
+    try:
+        send_alert_email(3)
+    except Exception as e:
+        print("[ERREUR ENVOI TEST] :", e)

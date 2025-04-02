@@ -9,7 +9,7 @@ import os
 import re
 import emoji
 import spacy
-from config import LABELS, EMOJIS, COLORS, MODEL_PATH, VECTORIZER_PATH
+from huggingface_api.config import LABELS, EMOJIS, COLORS, MODEL_PATH, VECTORIZER_PATH
 
 # === Chargement modèle et vectorizer ===
 model = joblib.load(MODEL_PATH)

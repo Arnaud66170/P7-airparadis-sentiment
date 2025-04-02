@@ -1,4 +1,8 @@
-from shared.predicts_utils import predict_single
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+
+from huggingface_api.shared.predict_utils import predict_single
 
 def test_predict_single_output_structure():
     result = predict_single("The flight was horrible")

@@ -1,4 +1,9 @@
-from shared.predicts_utils import clean_text, lemmatize_text, preprocess
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+
+from huggingface_api.shared.predict_utils import clean_text, lemmatize_text, preprocess
+
 
 def test_clean_text_removes_url_and_mentions():
     text = "Check this: https://example.com and @AirParadis"

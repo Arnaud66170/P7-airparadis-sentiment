@@ -1,41 +1,38 @@
-# utils/alert_email.py
 import os
 import smtplib
-from email.message import EmailMessage
+from email.mime.text import MIMEText
 
 def send_alert_email(nb_bad_feedbacks):
-    # Récupération des variables d'environnement
-    smtp_server = os.getenv("EMAIL_HOST", "smtp.gmail.com")
-    smtp_port = int(os.getenv("EMAIL_PORT", 587))
-    sender = os.getenv("EMAIL_HOST_USER")
-    password = os.getenv("EMAIL_HOST_PASSWORD")
-    receiver = os.getenv("EMAIL_RECEIVER")
+    smtp_server = "smtp.gmail.com"
+    port = 587
+    sender = os.getenv("GMAIL_SENDER")
+    receiver = os.getenv("GMAIL_RECEIVER")
+    password = os.getenv("GMAIL_PASSWORD")
 
     print("🧪 Secrets récupérés :")
     print("SMTP Server:", smtp_server)
-    print("Port:", smtp_port)
+    print("Port:", port)
     print("Sender:", sender)
     print("Receiver:", receiver)
     print("Password présent :", bool(password))
 
-    # Vérification des variables
-    if not all([smtp_server, smtp_port, sender, password, receiver]):
+    if not all([smtp_server, port, sender, receiver, password]):
         print("❌ Erreur : une ou plusieurs variables d’environnement sont manquantes.")
         return
 
-    # Création du message
-    msg = EmailMessage()
-    msg["Subject"] = "⚠️ Alerte : Feedbacks négatifs détectés"
-    msg["From"] = sender
-    msg["To"] = receiver
-    msg.set_content(f"{nb_bad_feedbacks} feedbacks négatifs ont été reçus en moins de 5 minutes.")
+    subject = "🚨 Alerte feedbacks négatifs"
+    body = f"⚠️ Il y a eu {nb_bad_feedbacks} feedbacks négatifs dans les 5 dernières minutes. À surveiller !"
 
-    # Envoi via SMTP sécurisé
+    message = MIMEText(body)
+    message["Subject"] = subject
+    message["From"] = sender
+    message["To"] = receiver
+
     try:
-        with smtplib.SMTP(smtp_server, smtp_port) as server:
+        with smtplib.SMTP(smtp_server, port) as server:
             server.starttls()
             server.login(sender, password)
-            server.send_message(msg)
-            print(f"✅ Mail envoyé à {receiver}")
+            server.sendmail(sender, receiver, message.as_string())
+        print("✅ Email envoyé avec succès.")
     except Exception as e:
-        print("❌ Erreur envoi email avec Gmail :", e)
+        print(f"❌ Erreur envoi email avec Gmail : {e}")

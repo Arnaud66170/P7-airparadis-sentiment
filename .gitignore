@@ -11,3 +11,6 @@ __pycache__/
 
 # Autres fichiers système
 .DS_Store
+
+# On ignore l’API intermédiaire
+alert_mail_api/

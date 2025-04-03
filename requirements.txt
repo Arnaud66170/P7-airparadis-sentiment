@@ -8,10 +8,9 @@ joblib
 numpy
 pandas
 plotly
-sendgrid
+# sendgrid
 pytest-cov          # plugin Pytest pour générer un rapport de couverture de code (quelles lignes sont testées)
-sendgrid
-
+smtplib
 
 # gradio==4.17.0
 # fasttext-wheel

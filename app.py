@@ -108,7 +108,6 @@ def update_history():
 def save_feedback(tweet, sentiment, confidence, feedback, comment):
     timestamp = datetime.now()
     pred_label = "Positive" if "Positive" in sentiment else "Negative"
-
     row = {
         "tweet": tweet,
         "predicted_label": pred_label,
@@ -118,13 +117,20 @@ def save_feedback(tweet, sentiment, confidence, feedback, comment):
         "timestamp": timestamp.isoformat()
     }
 
-    file_exists = os.path.isfile(FEEDBACK_CSV)
-    with open(FEEDBACK_CSV, mode='a', newline='', encoding='utf-8') as f:
-        writer = csv.DictWriter(f, fieldnames=row.keys())
-        if not file_exists:
-            writer.writeheader()
-        writer.writerow(row)
-        print("✅ Feedback ajouté à", FEEDBACK_CSV)
+    try:
+        # Écriture CSV directe à la racine
+        with open("feedback_log.csv", mode='a', newline='', encoding='utf-8') as f:
+            file_exists = os.path.getsize("feedback_log.csv") > 0 if os.path.exists("feedback_log.csv") else False
+            writer = csv.DictWriter(f, fieldnames=row.keys())
+            if not file_exists:
+                writer.writeheader()
+            writer.writerow(row)
+            print("✅ CSV écrit avec succès.")
+    except Exception as e:
+        print(f"❌ Erreur lors de l’écriture du CSV : {e}")
+
+    # Log console pour suivre les feedbacks
+    print(f"🔁 Feedback reçu : {feedback} | tweet: {tweet[:50]}... | proba: {confidence}")
 
     # Alerte mail si 3 feedbacks négatifs récents
     if feedback == "👎 No":

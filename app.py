@@ -271,13 +271,20 @@ with gr.Blocks(theme=gr.themes.Soft(), title="Sentiment UI") as demo:
     analyze_btn.click(fn=run_prediction, inputs=tweet_input,
                       outputs=[sentiment_output, emoji_output, confidence_slider, pie_plot, history_display])
     example_btn.click(fn=lambda: random.choice(tweet_examples), outputs=tweet_input)
+    def debug_save_feedback(*args):
+        print("📥 Entrée dans debug_save_feedback")
+        try:
+            return save_feedback(*args)
+        except Exception as e:
+            print("❌ Exception dans save_feedback :", e)
+            return "⚠️ ERREUR interne", ""
+
     feedback_btn.click(
-        fn=save_feedback,
+        fn=debug_save_feedback,
         inputs=[tweet_input, sentiment_output, confidence_slider, feedback, comment],
         outputs=[feedback_log, feedback_stats]
-    ).then(
-        lambda: print("🔥 feedback_btn déclenché !")
     )
+
     reset_btn.click(fn=reset_all, outputs=[sentiment_output, emoji_output, confidence_slider, pie_plot, history_display,
                                             feedback, comment, feedback_log, feedback_stats])
     reset_stats_btn.click(fn=reset_all_stats, outputs=[pie_plot, history_display, feedback_stats])

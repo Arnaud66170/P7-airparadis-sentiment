@@ -46,11 +46,18 @@ def analyze_file(file):
     except Exception as e:
         return pd.DataFrame([{"Error": str(e)}])
 
-# === Export CSV ===
+# === Export des derniers résultats ===
 def export_csv():
     export_path = os.path.join(EXPORT_FOLDER, EXPORT_FILENAME)
     last_results.to_csv(export_path, index=False)
     return export_path
+
+# === Export du fichier feedback global ===
+def export_feedback_log():
+    if os.path.exists("feedback_log.csv"):
+        return "feedback_log.csv"
+    else:
+        return None
 
 # === Interface Gradio ===
 with gr.Blocks(theme=gr.themes.Soft()) as demo:
@@ -74,11 +81,21 @@ with gr.Blocks(theme=gr.themes.Soft()) as demo:
 
             file_analyze_btn.click(fn=analyze_file, inputs=file_input, outputs=file_output)
 
-    gr.Markdown("## 💾 Export Predictions to CSV")
+    gr.Markdown("## 💾 Export des résultats d'analyse")
     export_btn = gr.Button("⬇️ Export Last Results")
     export_path_display = gr.File(label="Download CSV")
 
     export_btn.click(fn=export_csv, inputs=[], outputs=export_path_display)
+
+    gr.Markdown("## 📝 Export Feedback Log")
+    feedback_export_btn = gr.Button("📥 Télécharger feedback_log.csv")
+    feedback_export_output = gr.File(label="⬇️ Cliquez pour télécharger")
+
+    feedback_export_btn.click(
+        fn=export_feedback_log,
+        inputs=[],
+        outputs=feedback_export_output
+    )
 
 if __name__ == "__main__":
     demo.launch()

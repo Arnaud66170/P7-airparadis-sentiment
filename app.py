@@ -30,7 +30,7 @@ HISTORY_LIMIT = 5
 feedback_tracker = deque(maxlen=10)
 history = deque(maxlen=HISTORY_LIMIT)
 counter_pos, counter_neg = 0, 0
-FEEDBACK_CSV = "feedback_log.csv"
+FEEDBACK_CSV = os.path.abspath("feedback_log.csv")
 THEME_STATE = {"mode": "light"}
 ALERT_WINDOW_MINUTES = 5
 ALERT_COOLDOWN_MINUTES = 10
@@ -106,8 +106,20 @@ def update_history():
 
 # === Feedback logging (CSV + alerte) ===
 def save_feedback(tweet, sentiment, confidence, feedback, comment):
+    import os
+    import csv
+    from datetime import datetime
+
+    # 📅 Timestamp
     timestamp = datetime.now()
+
+    # 🏷️ Sentiment label propre
     pred_label = "Positive" if "Positive" in sentiment else "Negative"
+
+    # 📄 Chemin absolu
+    feedback_csv_path = os.path.abspath("feedback_log.csv")
+
+    # 🧾 Ligne à écrire
     row = {
         "tweet": tweet,
         "predicted_label": pred_label,
@@ -118,16 +130,22 @@ def save_feedback(tweet, sentiment, confidence, feedback, comment):
     }
 
     try:
-        # Écriture CSV directe à la racine
-        with open("feedback_log.csv", mode='a', newline='', encoding='utf-8') as f:
-            file_exists = os.path.getsize("feedback_log.csv") > 0 if os.path.exists("feedback_log.csv") else False
+        # 🛠️ Création fichier si inexistant
+        file_exists = os.path.exists(feedback_csv_path) and os.path.getsize(feedback_csv_path) > 0
+
+        # 💾 Écriture CSV
+        with open(feedback_csv_path, mode='a', newline='', encoding='utf-8') as f:
             writer = csv.DictWriter(f, fieldnames=row.keys())
             if not file_exists:
                 writer.writeheader()
             writer.writerow(row)
-            print("✅ CSV écrit avec succès.")
+
+        # 🧪 Log de contrôle
+        print(f"📄 Chemin absolu du CSV utilisé : {feedback_csv_path}")
+        print("✅ CSV écrit avec succès.")
     except Exception as e:
         print(f"❌ Erreur lors de l’écriture du CSV : {e}")
+
 
     # Log console pour suivre les feedbacks
     print(f"🔁 Feedback reçu : {feedback} | tweet: {tweet[:50]}... | proba: {confidence}")

@@ -108,9 +108,12 @@ def update_history():
 
 # === Feedback logging (CSV + alerte) ===
 def save_feedback(tweet, sentiment, confidence, feedback, comment):
-    import os
-    import csv
-    from datetime import datetime
+    print("📥 Début save_feedback")
+    print(f"tweet={tweet}")
+    print(f"sentiment={sentiment}")
+    print(f"confidence={confidence}")
+    print(f"feedback={feedback}")
+    print(f"comment={comment}")
 
     # 📅 Timestamp
     timestamp = datetime.now()

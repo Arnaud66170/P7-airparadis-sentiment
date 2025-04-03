@@ -119,11 +119,12 @@ def save_feedback(tweet, sentiment, confidence, feedback, comment):
     }
 
     file_exists = os.path.isfile(FEEDBACK_CSV)
-    with open(FEEDBACK_CSV, mode = 'a', newline = '', encoding = 'utf-8') as f:
+    with open(FEEDBACK_CSV, mode='a', newline='', encoding='utf-8') as f:
         writer = csv.DictWriter(f, fieldnames=row.keys())
         if not file_exists:
             writer.writeheader()
         writer.writerow(row)
+        print("✅ Feedback ajouté à", FEEDBACK_CSV)
 
     # Alerte mail si 3 feedbacks négatifs récents
     if feedback == "👎 No":

@@ -30,14 +30,14 @@ HISTORY_LIMIT = 5
 feedback_tracker = deque(maxlen=10)
 history = deque(maxlen=HISTORY_LIMIT)
 counter_pos, counter_neg = 0, 0
-FEEDBACK_CSV = os.path.join("logs", "feedback_log.csv")
+FEEDBACK_CSV = "feedback_log.csv"
 THEME_STATE = {"mode": "light"}
 ALERT_WINDOW_MINUTES = 5
 ALERT_COOLDOWN_MINUTES = 10
 alert_history = []
 
 # Créer le dossier logs si nécessaire
-os.makedirs("logs", exist_ok=True)
+# os.makedirs("logs", exist_ok=True)
 
 # === Tweets d'exemple ===
 tweet_examples = [

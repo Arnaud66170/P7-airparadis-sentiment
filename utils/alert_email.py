@@ -3,11 +3,11 @@ import smtplib
 from email.mime.text import MIMEText
 
 def send_alert_email(nb_bad_feedbacks):
-    smtp_server = "smtp.gmail.com"
-    port = 587
-    sender = os.getenv("GMAIL_SENDER")
-    receiver = os.getenv("GMAIL_RECEIVER")
-    password = os.getenv("GMAIL_PASSWORD")
+    smtp_server = os.getenv("EMAIL_HOST")
+    port = int(os.getenv("EMAIL_PORT", 587))
+    sender = os.getenv("EMAIL_HOST_USER")
+    password = os.getenv("EMAIL_HOST_PASSWORD")
+    receiver = os.getenv("EMAIL_RECEIVER")
 
     print("🧪 Secrets récupérés :")
     print("SMTP Server:", smtp_server)

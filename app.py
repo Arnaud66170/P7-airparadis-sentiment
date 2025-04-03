@@ -254,11 +254,11 @@ with gr.Blocks(theme=gr.themes.Soft(), title="Sentiment UI") as demo:
 if __name__ == "__main__":
     
     # Test direct de l'alerte email
-    print("[TEST] Envoi d'une alerte manuelle...")
-    try:
-        send_alert_email(3)
-        print("[TEST] ✅ Alerte envoyée avec succès.")
-    except Exception as e:
-        print("[TEST] ❌ Échec de l'envoi :", e)
+    # print("[TEST] Envoi d'une alerte manuelle...")
+    # try:
+    #     send_alert_email(3)
+    #     print("[TEST] ✅ Alerte envoyée avec succès.")
+    # except Exception as e:
+    #     print("[TEST] ❌ Échec de l'envoi :", e)
         
     demo.launch()

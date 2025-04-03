@@ -116,8 +116,8 @@ def save_feedback(tweet, sentiment, confidence, feedback, comment):
     # 🏷️ Sentiment label propre
     pred_label = "Positive" if "Positive" in sentiment else "Negative"
 
-    # 📄 Chemin absolu
-    feedback_csv_path = os.path.abspath("feedback_log.csv")
+    # # 📄 Chemin absolu
+    # feedback_csv_path = os.path.abspath("feedback_log.csv")
 
     # 🧾 Ligne à écrire
     row = {
@@ -131,17 +131,17 @@ def save_feedback(tweet, sentiment, confidence, feedback, comment):
 
     try:
         # 🛠️ Création fichier si inexistant
-        file_exists = os.path.exists(feedback_csv_path) and os.path.getsize(feedback_csv_path) > 0
+        file_exists = os.path.exists(FEEDBACK_CSV) and os.path.getsize(FEEDBACK_CSV) > 0
 
         # 💾 Écriture CSV
-        with open(feedback_csv_path, mode='a', newline='', encoding='utf-8') as f:
+        with open(FEEDBACK_CSV, mode='a', newline='', encoding='utf-8') as f:
             writer = csv.DictWriter(f, fieldnames=row.keys())
             if not file_exists:
                 writer.writeheader()
             writer.writerow(row)
 
         # 🧪 Log de contrôle
-        print(f"📄 Chemin absolu du CSV utilisé : {feedback_csv_path}")
+        print(f"✅ Écriture CSV OK : {FEEDBACK_CSV}")
         print("✅ CSV écrit avec succès.")
     except Exception as e:
         print(f"❌ Erreur lors de l’écriture du CSV : {e}")

@@ -5,7 +5,7 @@ import requests
 def send_alert_email(nb_bad_feedbacks):
     try:
         response = requests.post(
-            "https://web-production-662f7.up.railway.app/send-alert",  # Remplace ici par l’URL exacte de ton API Railway
+            "https://web-production-662f7.up.railway.app/send-alert",
             json={"nb_feedbacks": nb_bad_feedbacks}
         )
         print(f"✅ Appel API Railway : {response.status_code} | {response.json()}")

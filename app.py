@@ -1,6 +1,8 @@
 # === app.py ===
 # Interface Gradio principale avec visualisation, feedback, historique, CSV logging, stats, thème jour/nuit + alerte mail
 
+print("✅ Version de app.py active")
+
 import gradio as gr
 import pandas as pd
 import plotly.express as px
@@ -128,6 +130,8 @@ def save_feedback(tweet, sentiment, confidence, feedback, comment):
         "comment": comment,
         "timestamp": timestamp.isoformat()
     }
+
+    print("📥 Appel de save_feedback avec :", row)
 
     try:
         # 🛠️ Création fichier si inexistant
@@ -267,8 +271,13 @@ with gr.Blocks(theme=gr.themes.Soft(), title="Sentiment UI") as demo:
     analyze_btn.click(fn=run_prediction, inputs=tweet_input,
                       outputs=[sentiment_output, emoji_output, confidence_slider, pie_plot, history_display])
     example_btn.click(fn=lambda: random.choice(tweet_examples), outputs=tweet_input)
-    feedback_btn.click(fn=save_feedback, inputs=[tweet_input, sentiment_output, confidence_slider, feedback, comment],
-                       outputs=[feedback_log, feedback_stats])
+    feedback_btn.click(
+        fn=save_feedback,
+        inputs=[tweet_input, sentiment_output, confidence_slider, feedback, comment],
+        outputs=[feedback_log, feedback_stats]
+    ).then(
+        lambda: print("🔥 feedback_btn déclenché !")
+    )
     reset_btn.click(fn=reset_all, outputs=[sentiment_output, emoji_output, confidence_slider, pie_plot, history_display,
                                             feedback, comment, feedback_log, feedback_stats])
     reset_stats_btn.click(fn=reset_all_stats, outputs=[pie_plot, history_display, feedback_stats])

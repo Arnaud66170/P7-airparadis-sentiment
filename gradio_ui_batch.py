@@ -9,10 +9,19 @@ from config import DEFAULT_BATCH_COLUMN_NAMES, EXPORT_FILENAME, EXPORT_FOLDER
 
 os.makedirs(EXPORT_FOLDER, exist_ok=True)
 
+# === Variable globale pour stocker les derniers résultats ===
+last_results = pd.DataFrame()
+
+def update_last_results(df):
+    global last_results
+    last_results = df
+    return df
+
 # === Analyse via texte multi-lignes ===
 def analyze_multiline(text_block):
     lines = [line.strip() for line in text_block.strip().splitlines() if line.strip()]
-    return predict_batch(lines)
+    results = predict_batch(lines)
+    return update_last_results(results)
 
 # === Analyse via fichier CSV ou XLSX ===
 def analyze_file(file):
@@ -32,14 +41,15 @@ def analyze_file(file):
         if col is None:
             return pd.DataFrame([{"Error": "No valid column found"}])
 
-        return predict_batch(df[col].dropna().tolist())
+        results = predict_batch(df[col].dropna().tolist())
+        return update_last_results(results)
     except Exception as e:
         return pd.DataFrame([{"Error": str(e)}])
 
 # === Export CSV ===
-def export_csv(dataframe):
+def export_csv():
     export_path = os.path.join(EXPORT_FOLDER, EXPORT_FILENAME)
-    dataframe.to_csv(export_path, index=False)
+    last_results.to_csv(export_path, index=False)
     return export_path
 
 # === Interface Gradio ===
@@ -68,7 +78,7 @@ with gr.Blocks(theme=gr.themes.Soft()) as demo:
     export_btn = gr.Button("⬇️ Export Last Results")
     export_path_display = gr.File(label="Download CSV")
 
-    export_btn.click(fn=export_csv, inputs=file_output, outputs=export_path_display)
+    export_btn.click(fn=export_csv, inputs=[], outputs=export_path_display)
 
 if __name__ == "__main__":
     demo.launch()

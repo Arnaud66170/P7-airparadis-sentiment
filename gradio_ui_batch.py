@@ -1,6 +1,9 @@
 # === gradio_ui_batch.py ===
 # Interface Gradio dédiée à l'analyse par lot (multi-lignes ou fichiers)
 
+# 🔁 Version avec export feedback_log.csv
+
+
 import gradio as gr
 import pandas as pd
 import os
@@ -96,6 +99,24 @@ with gr.Blocks(theme=gr.themes.Soft()) as demo:
         inputs=[],
         outputs=feedback_export_output
     )
+
+with gr.Tab("📦 Batch Mode (admin)"):
+    with gr.Row():
+        multiline_input = gr.Textbox(lines=10, label="📝 Tweets multi-lignes")
+        analyze_btn = gr.Button("🔍 Analyser")
+    output_table_1 = gr.Dataframe(label="Résultats multi-lignes")
+    analyze_btn.click(fn=analyze_multiline_batch, inputs=multiline_input, outputs=output_table_1)
+
+    with gr.Row():
+        file_input = gr.File(label="📂 Upload CSV/XLSX")
+        file_analyze_btn = gr.Button("📊 Analyser Fichier")
+    file_output = gr.Dataframe(label="Résultats fichier")
+    file_analyze_btn.click(fn=analyze_file_batch, inputs=file_input, outputs=file_output)
+
+    export_btn = gr.Button("⬇️ Exporter en CSV")
+    export_path_display = gr.File(label="Télécharger le CSV")
+    export_btn.click(fn=export_batch_csv, inputs=[], outputs=export_path_display)
+
 
 if __name__ == "__main__":
     demo.launch()

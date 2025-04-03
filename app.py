@@ -15,8 +15,12 @@ import traceback
 import threading
 
 
+from config import DEFAULT_BATCH_COLUMN_NAMES, EXPORT_FILENAME, EXPORT_FOLDER
+
+os.makedirs(EXPORT_FOLDER, exist_ok=True)
+
 # ✅ Import prédiction
-from shared.predict_utils import predict_single
+from shared.predict_utils import predict_single, predict_batch
 
 # ✅ Import dynamique pour config (local vs Hugging Face)
 try:
@@ -294,6 +298,43 @@ with gr.Blocks(theme=gr.themes.Soft(), title="Sentiment UI") as demo:
     feedback_reset.click(fn=reset_feedback_csv, outputs=[feedback_log])
     feedback_dl.upload(fn=lambda x: x, inputs=[], outputs=[feedback_dl])
     theme_switch_btn.click(fn=toggle_theme, outputs=None)
+
+last_batch_results = pd.DataFrame()
+
+def update_last_batch_results(df):
+    global last_batch_results
+    last_batch_results = df
+    return df
+
+def analyze_multiline_batch(text_block):
+    lines = [line.strip() for line in text_block.strip().splitlines() if line.strip()]
+    results = predict_batch(lines)
+    return update_last_batch_results(results)
+
+def analyze_file_batch(file):
+    if file is None:
+        return pd.DataFrame()
+    try:
+        ext = os.path.splitext(file.name)[1].lower()
+        if ext == ".csv":
+            df = pd.read_csv(file.name)
+        elif ext in [".xls", ".xlsx"]:
+            df = pd.read_excel(file.name)
+        else:
+            return pd.DataFrame([{"Error": "Unsupported file format"}])
+        col = next((c for c in df.columns if c.lower() in DEFAULT_BATCH_COLUMN_NAMES), None)
+        if col is None:
+            return pd.DataFrame([{"Error": "No valid column found"}])
+        results = predict_batch(df[col].dropna().tolist())
+        return update_last_batch_results(results)
+    except Exception as e:
+        return pd.DataFrame([{"Error": str(e)}])
+
+def export_batch_csv():
+    export_path = os.path.join(EXPORT_FOLDER, EXPORT_FILENAME)
+    last_batch_results.to_csv(export_path, index=False)
+    return export_path
+
 
 if __name__ == "__main__":
     

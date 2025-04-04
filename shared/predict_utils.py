@@ -77,6 +77,15 @@ def predict_single(text: str) -> dict:
 # === Prédiction par lot ===
 def predict_batch(text_list: list) -> pd.DataFrame:
     results = [predict_single(text) for text in text_list]
+
+    # 🔁 Log des prédictions batch
+    for res in results:
+        log_batch_analysis(
+            tweet_text=res["text"],
+            predicted_label=res["sentiment"],
+            proba=res["proba"]
+        )
+
     df = pd.DataFrame(results)
     return df[["text", "sentiment", "proba", "emoji"]].rename(
         columns={"text": "Tweet", "sentiment": "Sentiment", "proba": "Confidence", "emoji": "Emoji"}

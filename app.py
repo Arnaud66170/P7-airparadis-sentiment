@@ -353,6 +353,49 @@ def export_batch_csv():
     last_batch_results.to_csv(export_path, index=False)
     return export_path
 
+def get_log_preview(path, n=10):
+    try:
+        df = pd.read_csv(path)
+        return df.tail(n)
+    except Exception as e:
+        return pd.DataFrame([{"Error": str(e)}])
+
+def download_log_file(path):
+    return path if os.path.exists(path) else None
+
+
+with gr.Accordion("📁 Logs (analyse & feedback)", open=False):
+    with gr.Row():
+        gr.Markdown("### 🔍 Aperçu des derniers logs")
+
+    with gr.Row():
+        log_analysis_preview = gr.Dataframe(label="Dernières analyses", interactive=False)
+        log_feedback_preview = gr.Dataframe(label="Derniers feedbacks", interactive=False)
+
+    with gr.Row():
+        btn_refresh_logs = gr.Button("🔄 Rafraîchir les aperçus")
+        btn_dl_analysis = gr.Button("⬇️ Télécharger log_analysis.csv")
+        btn_dl_feedback = gr.Button("⬇️ Télécharger log_feedbacks.csv")
+        file_dl = gr.File(label="Fichier téléchargé")
+
+    btn_refresh_logs.click(
+        fn=lambda: (get_log_preview("huggingface_api/logs/log_analysis.csv"),
+                    get_log_preview("huggingface_api/logs/log_feedbacks.csv")),
+        inputs=[],
+        outputs=[log_analysis_preview, log_feedback_preview]
+    )
+
+    btn_dl_analysis.click(
+        fn=lambda: download_log_file("huggingface_api/logs/log_analysis.csv"),
+        inputs=[],
+        outputs=[file_dl]
+    )
+
+    btn_dl_feedback.click(
+        fn=lambda: download_log_file("huggingface_api/logs/log_feedbacks.csv"),
+        inputs=[],
+        outputs=[file_dl]
+    )
 
 
 

@@ -4,6 +4,9 @@ import re
 import emoji
 import spacy
 from pydantic import BaseModel
+from utils.logger import log_user_event
+from typing import Optional
+
 
 # ✅ Import dynamique pour compatibilité local + Hugging Face Space
 try:
@@ -54,10 +57,37 @@ def predict(tweet: Tweet):
     prediction = model.predict(vectorized)[0]
     proba = model.predict_proba(vectorized)[0][prediction]
 
-    sentiment = LABELS[prediction]  # Ajouté ici
+    sentiment = LABELS[prediction]
+
+    # 📝 Logging automatique de l'analyse
+    log_user_event(
+        event_type="analysis",
+        tweet_text=tweet.text,
+        predicted_label=sentiment,
+        proba=proba
+    )
 
     return {
         "label": int(prediction),
         "sentiment": sentiment,
         "proba": round(proba, 4)
     }
+
+class Feedback(BaseModel):
+    tweet: str
+    predicted_label: str
+    proba: float
+    feedback: str        # Ex: "✅" ou "❌"
+    comment: Optional[str] = None
+
+@app.post("/feedback")
+def submit_feedback(fb: Feedback):
+    log_user_event(
+        event_type="feedback",
+        tweet_text=fb.tweet,
+        predicted_label=fb.predicted_label,
+        proba=fb.proba,
+        feedback=fb.feedback,
+        comment=fb.comment
+    )
+    return {"status": "success", "message": "Feedback enregistré"}

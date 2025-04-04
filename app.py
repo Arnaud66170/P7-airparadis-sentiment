@@ -13,6 +13,7 @@ from datetime import datetime, timedelta
 import os
 import traceback
 import threading
+from utils.logger import log_user_event
 
 
 from config import DEFAULT_BATCH_COLUMN_NAMES, EXPORT_FILENAME, EXPORT_FOLDER
@@ -334,6 +335,24 @@ def export_batch_csv():
     export_path = os.path.join(EXPORT_FOLDER, EXPORT_FILENAME)
     last_batch_results.to_csv(export_path, index=False)
     return export_path
+
+# pour les analyses de tweet
+log_user_event(
+    event_type="analysis",
+    tweet_text=tweet,
+    predicted_label=label,
+    proba=proba
+)
+
+# pour les feedbacks
+log_user_event(
+    event_type="feedback",
+    tweet_text=tweet,
+    predicted_label=label,
+    proba=proba,
+    feedback=emoji_feedback,
+    comment=user_comment
+)
 
 
 if __name__ == "__main__":

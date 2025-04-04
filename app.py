@@ -87,13 +87,28 @@ def run_prediction(tweet):
     global counter_pos, counter_neg
     pred = predict_single(tweet)
     history.appendleft(pred)
+
     if pred['label'] == 1:
         counter_pos += 1
     elif pred['label'] == 0:
         counter_neg += 1
 
+    # ✅ Log dans log_analysis.csv
+    try:
+        log_user_event(
+            event_type="analysis",
+            tweet_text=pred['text'],                 # Texte original
+            predicted_label=pred['sentiment'],       # "positif" ou "négatif"
+            proba=float(pred['proba'])               # Score de confiance (entre 0 et 1)
+        )
+        print("📝 log_user_event (analysis) : OK")
+    except Exception as e:
+        print(f"❌ log_user_event (analysis) FAILED : {e}")
+
     html_sentiment = f"<h2 style='color:{pred['color']};text-align:center;'>🧭 Sentiment: {pred['sentiment']} ({pred['proba']}%)</h2>"
+
     return html_sentiment, pred['emoji'], pred['proba'], update_pie_chart(), update_history()
+
 
 # === Visualisation dynamique ===
 def update_pie_chart():
@@ -126,9 +141,6 @@ def save_feedback(tweet, sentiment, confidence, feedback, comment):
     # 🏷️ Sentiment label propre
     pred_label = "Positive" if "Positive" in sentiment else "Negative"
 
-    # # 📄 Chemin absolu
-    # feedback_csv_path = os.path.abspath("feedback_log.csv")
-
     # 🧾 Ligne à écrire
     row = {
         "tweet": tweet,
@@ -142,24 +154,19 @@ def save_feedback(tweet, sentiment, confidence, feedback, comment):
     print("📥 Appel de save_feedback avec :", row)
 
     try:
-        # 🛠️ Création fichier si inexistant
         file_exists = os.path.exists(FEEDBACK_CSV) and os.path.getsize(FEEDBACK_CSV) > 0
 
-        # 💾 Écriture CSV
         with open(FEEDBACK_CSV, mode='a', newline='', encoding='utf-8') as f:
             writer = csv.DictWriter(f, fieldnames=row.keys())
             if not file_exists:
                 writer.writeheader()
             writer.writerow(row)
 
-        # 🧪 Log de contrôle
         print(f"✅ Écriture CSV OK : {FEEDBACK_CSV}")
         print("✅ CSV écrit avec succès.")
     except Exception as e:
         print(f"❌ Erreur lors de l’écriture du CSV : {e}")
 
-
-    # Log console pour suivre les feedbacks
     print(f"🔁 Feedback reçu : {feedback} | tweet: {tweet[:50]}... | proba: {confidence}")
 
     # Alerte mail si 3 feedbacks négatifs récents
@@ -172,7 +179,6 @@ def save_feedback(tweet, sentiment, confidence, feedback, comment):
 
         if len(recent_alerts) >= FEEDBACK_ALERT_THRESHOLD:
             if not hasattr(save_feedback, "last_alert") or now - save_feedback.last_alert > timedelta(minutes=ALERT_COOLDOWN_MINUTES):
-                # === Fonction threadée pour l'envoi de l'alerte ===
                 def threaded_send_alert(count):
                     print(f"[THREAD] Lancement envoi mail pour {count} feedbacks.")
                     try:
@@ -185,7 +191,18 @@ def save_feedback(tweet, sentiment, confidence, feedback, comment):
                 thread.start()
                 save_feedback.last_alert = now
 
+    # ✅ Nouveau : log vers log_feedbacks.csv
+    log_user_event(
+        event_type="feedback",
+        tweet_text=tweet,
+        predicted_label=pred_label,
+        proba=confidence,
+        feedback=feedback,
+        comment=comment
+    )
+
     return "✅ Feedback enregistré avec succès.", update_feedback_stats()
+
 
 # === Feedback stats ===
 def update_feedback_stats():
@@ -336,23 +353,7 @@ def export_batch_csv():
     last_batch_results.to_csv(export_path, index=False)
     return export_path
 
-# pour les analyses de tweet
-log_user_event(
-    event_type="analysis",
-    tweet_text=tweet,
-    predicted_label=label,
-    proba=proba
-)
 
-# pour les feedbacks
-log_user_event(
-    event_type="feedback",
-    tweet_text=tweet,
-    predicted_label=label,
-    proba=proba,
-    feedback=emoji_feedback,
-    comment=user_comment
-)
 
 
 if __name__ == "__main__":

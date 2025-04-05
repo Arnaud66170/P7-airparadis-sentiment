@@ -107,24 +107,25 @@ with gr.Blocks(theme=gr.themes.Soft()) as demo:
 
             file_analyze_btn.click(fn=analyze_file, inputs=file_input, outputs=file_output)
 
-    gr.Markdown("## 💾 Export des résultats d'analyse")
-    export_btn = gr.Button("⬇️ Export Last Results")
-    export_path_display = gr.File(label="Download CSV")
+        with gr.Tab("📦 Batch Mode (admin)"):
+            with gr.Row():
+                multiline_input_admin = gr.Textbox(lines=10, label="📝 Tweets multi-lignes")
+                analyze_btn_admin = gr.Button("🔍 Analyser")
+            output_table_admin = gr.Dataframe(label="Résultats multi-lignes")
+            analyze_btn_admin.click(fn=analyze_multiline_batch, inputs=multiline_input_admin, outputs=output_table_admin)
 
-    export_btn.click(fn=export_csv, inputs=[], outputs=export_path_display)
+            with gr.Row():
+                file_input_admin = gr.File(label="📂 Upload CSV/XLSX")
+                file_analyze_btn_admin = gr.Button("📊 Analyser Fichier")
+            file_output_admin = gr.Dataframe(label="Résultats fichier")
+            file_analyze_btn_admin.click(fn=analyze_file_batch, inputs=file_input_admin, outputs=file_output_admin)
 
-    gr.Markdown("## 📝 Export Feedback Log")
-    feedback_export_btn = gr.Button("📥 Télécharger feedback_log.csv")
-    feedback_export_output = gr.File(label="⬇️ Cliquez pour télécharger")
+            export_btn_admin = gr.Button("⬇️ Exporter en CSV")
+            export_path_display_admin = gr.File(label="Télécharger le CSV")
+            export_btn_admin.click(fn=export_batch_csv, inputs=[], outputs=export_path_display_admin)
 
-    feedback_export_btn.click(
-        fn=export_feedback_log,
-        inputs=[],
-        outputs=feedback_export_output
-    )
-
+    # Hors onglets : logs batchs
     gr.Markdown("## 📁 Log des batchs analysés")
-
     with gr.Row():
         btn_download_batch_log = gr.Button("⬇️ Télécharger log_batch.csv")
         batch_log_file = gr.File(label="Fichier .csv généré")
@@ -144,43 +145,6 @@ with gr.Blocks(theme=gr.themes.Soft()) as demo:
             inputs=[],
             outputs=[preview_output]
         )
-
-
-
-with gr.Tabs():
-    with gr.Tab("📝 Paste Tweets"):
-        multiline_input = gr.Textbox(lines=10, label="Paste multiple tweets (one per line)")
-        analyze_btn = gr.Button("🔍 Analyze All")
-        output_table_1 = gr.Dataframe(label="Results")
-
-        analyze_btn.click(fn=analyze_multiline, inputs=multiline_input, outputs=output_table_1)
-
-    with gr.Tab("📂 Upload File"):
-        file_input = gr.File(label="Upload .csv or .xlsx file")
-        file_output = gr.Dataframe(label="Results")
-        file_analyze_btn = gr.Button("📊 Analyze File")
-
-        file_analyze_btn.click(fn=analyze_file, inputs=file_input, outputs=file_output)
-
-    # ✅ Ton ancien bloc "admin", replacé ici correctement
-    with gr.Tab("📦 Batch Mode (admin)"):
-        with gr.Row():
-            multiline_input_admin = gr.Textbox(lines=10, label="📝 Tweets multi-lignes")
-            analyze_btn_admin = gr.Button("🔍 Analyser")
-        output_table_admin = gr.Dataframe(label="Résultats multi-lignes")
-        analyze_btn_admin.click(fn=analyze_multiline_batch, inputs=multiline_input_admin, outputs=output_table_admin)
-
-        with gr.Row():
-            file_input_admin = gr.File(label="📂 Upload CSV/XLSX")
-            file_analyze_btn_admin = gr.Button("📊 Analyser Fichier")
-        file_output_admin = gr.Dataframe(label="Résultats fichier")
-        file_analyze_btn_admin.click(fn=analyze_file_batch, inputs=file_input_admin, outputs=file_output_admin)
-
-        export_btn_admin = gr.Button("⬇️ Exporter en CSV")
-        export_path_display_admin = gr.File(label="Télécharger le CSV")
-        export_btn_admin.click(fn=export_batch_csv, inputs=[], outputs=export_path_display_admin)
-
-
 
 
 if __name__ == "__main__":

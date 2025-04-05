@@ -1,10 +1,13 @@
 import sys
 import os
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+# sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 # from huggingface_api.shared.predict_utils import clean_text, lemmatize_text, preprocess
 from shared.predict_utils import clean_text, lemmatize_text, preprocess
 
+def test_sanity_check():
+    assert True
 
 def test_clean_text_removes_url_and_mentions():
     text = "Check this: https://example.com and @AirParadis"
@@ -33,6 +36,8 @@ def test_preprocess_combines_clean_and_lemmatize():
     assert "😡" not in processed
     assert "awful" in processed or "service" in processed
 
-
+if __name__ == "__main__":
+    test_sanity_check()
+    
 # commande gitbash test nettoyage :
-# pytest tests/test_cleaning.py
+# pytest -v tests/test_cleaning.py --no-cov

@@ -61,10 +61,10 @@ def predict(tweet: Tweet):
 
     # 📝 Logging automatique de l'analyse
     log_user_event(
-        event_type="analysis",
-        tweet_text=tweet.text,
-        predicted_label=sentiment,
-        proba=proba
+        event_type = "analysis",
+        tweet_text = tweet.text,
+        predicted_label = sentiment,
+        proba = proba
     )
 
     return {

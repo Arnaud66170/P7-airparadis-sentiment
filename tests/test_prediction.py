@@ -1,10 +1,13 @@
 import sys
 import os
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+# sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 # from huggingface_api.shared.predict_utils import predict_single
 from shared.predict_utils import predict_single
 
+def test_sanity_check():
+    assert True
 
 def test_predict_single_output_structure():
     result = predict_single("The flight was horrible")
@@ -35,6 +38,10 @@ def test_predict_single_error_handling():
     assert result["emoji"] == "❓"
     assert result["color"] == "gray"
 
+if __name__ == "__main__":
+    test_predict_single_output_structure()
+    test_predict_single_prediction_validity()
+    test_predict_single_error_handling()
 
 # commande gitbash test prédiction :
-# pytest tests/test_prediction.py
+# pytest -v tests/test_prediction.py --no-cov

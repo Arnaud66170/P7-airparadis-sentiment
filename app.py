@@ -242,6 +242,18 @@ def toggle_theme():
         THEME_STATE['mode'] = 'light'
         return gr.themes.Soft()
 
+# === Fonctions utilitaires : aperçu + téléchargement CSV ===
+def get_log_preview(path, n=10):
+    try:
+        df = pd.read_csv(path)
+        return df.tail(n)
+    except Exception as e:
+        return pd.DataFrame([{"Error": str(e)}])
+
+def download_log_file(path):
+    return path if os.path.exists(path) else None
+
+
 # === Interface Gradio ===
 with gr.Blocks(theme=gr.themes.Soft(), title="Sentiment UI") as demo:
     theme_switch_btn = gr.Button("🌞 / 🌙 Switch Theme")

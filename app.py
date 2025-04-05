@@ -106,9 +106,7 @@ def run_prediction(tweet):
         print(f"❌ log_user_event (analysis) FAILED : {e}")
 
     html_sentiment = f"<h2 style='color:{pred['color']};text-align:center;'>🧭 Sentiment: {pred['sentiment']} ({pred['proba']}%)</h2>"
-
     return html_sentiment, pred['emoji'], pred['proba'], update_pie_chart(), update_history()
-
 
 # === Visualisation dynamique ===
 def update_pie_chart():
@@ -124,7 +122,6 @@ def update_history():
             columns={"text": "Tweet", "sentiment": "Sentiment", "proba": "Confidence"})
     else:
         return pd.DataFrame(columns=["Tweet", "Sentiment", "Confidence"])
-
 
 # === Feedback logging (CSV + alerte) ===
 def save_feedback(tweet, sentiment, confidence, feedback, comment):
@@ -150,7 +147,6 @@ def save_feedback(tweet, sentiment, confidence, feedback, comment):
         "comment": comment,
         "timestamp": timestamp.isoformat()
     }
-
     print("📥 Appel de save_feedback avec :", row)
 
     try:

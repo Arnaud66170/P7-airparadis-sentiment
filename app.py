@@ -288,182 +288,54 @@ with gr.Blocks(theme=gr.themes.Soft(), title="Sentiment UI") as demo:
         feedback_dl = gr.File(label="⬇️ Download feedback CSV")
         feedback_reset = gr.Button("🧻 Reset Feedback Log")
 
-    # Interactions
-    analyze_btn.click(fn=run_prediction, inputs=tweet_input,
-                      outputs=[sentiment_output, emoji_output, confidence_slider, pie_plot, history_display])
-    example_btn.click(fn=lambda: random.choice(tweet_examples), outputs=tweet_input)
-    def debug_save_feedback(*args):
-        print("📥 Entrée dans debug_save_feedback")
-        try:
-            return save_feedback(*args)
-        except Exception as e:
-            print("❌ Exception dans save_feedback :", e)
-            return "⚠️ ERREUR interne", ""
-
-    feedback_btn.click(
-        fn=debug_save_feedback,
-        inputs=[tweet_input, sentiment_output, confidence_slider, feedback, comment],
-        outputs=[feedback_log, feedback_stats]
-    )
-
-    reset_btn.click(fn=reset_all, outputs=[sentiment_output, emoji_output, confidence_slider, pie_plot, history_display,
-                                            feedback, comment, feedback_log, feedback_stats])
-    reset_stats_btn.click(fn=reset_all_stats, outputs=[pie_plot, history_display, feedback_stats])
-    feedback_reset.click(fn=reset_feedback_csv, outputs=[feedback_log])
-    feedback_dl.upload(fn=lambda x: x, inputs=[], outputs=[feedback_dl])
-    theme_switch_btn.click(fn=toggle_theme, outputs=None)
-
-last_batch_results = pd.DataFrame()
-
-def update_last_batch_results(df):
-    global last_batch_results
-    last_batch_results = df
-    return df
-
-def analyze_multiline_batch(text_block):
-    lines = [line.strip() for line in text_block.strip().splitlines() if line.strip()]
-    results = predict_batch(lines)
-    return update_last_batch_results(results)
-
-def analyze_file_batch(file):
-    if file is None:
-        return pd.DataFrame()
-    try:
-        ext = os.path.splitext(file.name)[1].lower()
-        if ext == ".csv":
-            df = pd.read_csv(file.name)
-        elif ext in [".xls", ".xlsx"]:
-            df = pd.read_excel(file.name)
-        else:
-            return pd.DataFrame([{"Error": "Unsupported file format"}])
-        col = next((c for c in df.columns if c.lower() in DEFAULT_BATCH_COLUMN_NAMES), None)
-        if col is None:
-            return pd.DataFrame([{"Error": "No valid column found"}])
-        results = predict_batch(df[col].dropna().tolist())
-        return update_last_batch_results(results)
-    except Exception as e:
-        return pd.DataFrame([{"Error": str(e)}])
-
-def export_batch_csv():
-    export_path = os.path.join(EXPORT_FOLDER, EXPORT_FILENAME)
-    last_batch_results.to_csv(export_path, index=False)
-    return export_path
-
-def get_log_preview(path, n=10):
-    try:
-        df = pd.read_csv(path)
-        return df.tail(n)
-    except Exception as e:
-        return pd.DataFrame([{"Error": str(e)}])
-
-def download_log_file(path):
-    return path if os.path.exists(path) else None
-
-with gr.Blocks(theme=gr.themes.Soft(), title="Sentiment UI") as demo:
-    theme_switch_btn = gr.Button("🌞 / 🌙 Switch Theme")
-
-    gr.Markdown("""
-    <div style="text-align: center">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/88/Airplane_silhouette.svg/512px-Airplane_silhouette.svg.png" height="100" />
-        <h1 style="color: #1E88E5;">✈️ Air Paradis - Sentiment Monitor</h1>
-        <h4>Anticipate bad buzz with real-time tweet analysis</h4>
-    </div>
-    """)
-
-    with gr.Row():
-        tweet_input = gr.Textbox(lines=3, label="💬 Tweet to Analyze", placeholder="Enter or paste a tweet...")
-        example_btn = gr.Button("🎲 Insert Example Tweet")
-
-    with gr.Row():
-        analyze_btn = gr.Button("🔍 Analyze Tweet")
-        reset_btn = gr.Button("♻️ Reset")
-        reset_stats_btn = gr.Button("🧹 Reset Stats")
-
-    sentiment_output = gr.HTML()
-    emoji_output = gr.Text(label="Sentiment Emoji", interactive=False)
-    confidence_slider = gr.Slider(minimum=0, maximum=100, label="🔋 Confidence", interactive=False)
-    pie_plot = gr.Plot(label="📊 Sentiment Distribution")
-
-    with gr.Accordion("🧠 Educational Panel", open=False):
-        gr.Markdown("""
-        **How does this model work?**
-        - Tweets are cleaned and lemmatized (via spaCy)
-        - Transformed into a vector using TF-IDF
-        - Classified using a Logistic Regression model
-        """)
-
-    with gr.Accordion("🧾 History - Last 5 Tweets", open=True):
-        history_display = gr.Dataframe(headers=["Tweet", "Sentiment", "Confidence"], interactive=False)
-
-    with gr.Accordion("📩 Feedback", open=False):
-        feedback = gr.Radio(["👍 Yes", "👎 No"], label="Was this prediction correct?")
-        comment = gr.Textbox(label="Optional comment")
-        feedback_btn = gr.Button("✅ Send Feedback")
-        feedback_log = gr.Textbox(label="Feedback Status", interactive=False)
-        feedback_stats = gr.Textbox(label="📊 Feedback Stats", interactive=False)
-        feedback_dl = gr.File(label="⬇️ Download feedback CSV")
-        feedback_reset = gr.Button("🧻 Reset Feedback Log")
-
-    # === INTERACTIONS
-    analyze_btn.click(fn=run_prediction, inputs=tweet_input,
-                      outputs=[sentiment_output, emoji_output, confidence_slider, pie_plot, history_display])
-    example_btn.click(fn=lambda: random.choice(tweet_examples), outputs=tweet_input)
-
-    def debug_save_feedback(*args):
-        print("📥 Entrée dans debug_save_feedback")
-        try:
-            return save_feedback(*args)
-        except Exception as e:
-            print("❌ Exception dans save_feedback :", e)
-            return "⚠️ ERREUR interne", ""
-
-    feedback_btn.click(
-        fn=debug_save_feedback,
-        inputs=[tweet_input, sentiment_output, confidence_slider, feedback, comment],
-        outputs=[feedback_log, feedback_stats]
-    )
-
-    reset_btn.click(fn=reset_all, outputs=[sentiment_output, emoji_output, confidence_slider, pie_plot, history_display,
-                                            feedback, comment, feedback_log, feedback_stats])
-    reset_stats_btn.click(fn=reset_all_stats, outputs=[pie_plot, history_display, feedback_stats])
-    feedback_reset.click(fn=reset_feedback_csv, outputs=[feedback_log])
-    feedback_dl.upload(fn=lambda x: x, inputs=[], outputs=[feedback_dl])
-    theme_switch_btn.click(fn=toggle_theme, outputs=None)
-
-    # ✅ LOGS utilisateurs
     with gr.Accordion("📁 Logs (analyse & feedback)", open=False):
         with gr.Row():
             gr.Markdown("### 🔍 Aperçu des derniers logs")
-
         with gr.Row():
             log_analysis_preview = gr.Dataframe(label="Dernières analyses", interactive=False)
             log_feedback_preview = gr.Dataframe(label="Derniers feedbacks", interactive=False)
-
         with gr.Row():
             btn_refresh_logs = gr.Button("🔄 Rafraîchir les aperçus")
             btn_dl_analysis = gr.Button("⬇️ Télécharger log_analysis.csv")
             btn_dl_feedback = gr.Button("⬇️ Télécharger log_feedbacks.csv")
             file_dl = gr.File(label="Fichier téléchargé")
 
-        btn_refresh_logs.click(
-            fn=lambda: (get_log_preview("huggingface_api/logs/log_analysis.csv"),
-                        get_log_preview("huggingface_api/logs/log_feedbacks.csv")),
-            inputs=[],
-            outputs=[log_analysis_preview, log_feedback_preview]
-        )
+    # Actions
+    analyze_btn.click(fn=run_prediction, inputs=tweet_input,
+                      outputs=[sentiment_output, emoji_output, confidence_slider, pie_plot, history_display])
+    example_btn.click(fn=lambda: random.choice(tweet_examples), outputs=tweet_input)
 
-        btn_dl_analysis.click(
-            fn=lambda: download_log_file("huggingface_api/logs/log_analysis.csv"),
-            inputs=[],
-            outputs=[file_dl]
-        )
+    def debug_save_feedback(*args):
+        try:
+            return save_feedback(*args)
+        except:
+            return "⚠️ ERREUR interne", ""
 
-        btn_dl_feedback.click(
-            fn=lambda: download_log_file("huggingface_api/logs/log_feedbacks.csv"),
-            inputs=[],
-            outputs=[file_dl]
-        )
+    feedback_btn.click(fn=debug_save_feedback,
+        inputs=[tweet_input, sentiment_output, confidence_slider, feedback, comment],
+        outputs=[feedback_log, feedback_stats]
+    )
 
+    reset_btn.click(fn=reset_all,
+        outputs=[sentiment_output, emoji_output, confidence_slider, pie_plot, history_display,
+                 feedback, comment, feedback_log, feedback_stats])
+    reset_stats_btn.click(fn=reset_all_stats,
+        outputs=[pie_plot, history_display, feedback_stats])
+    feedback_reset.click(fn=reset_feedback_csv, outputs=[feedback_log])
+    feedback_dl.upload(fn=lambda x: x, inputs=[], outputs=[feedback_dl])
+    theme_switch_btn.click(fn=toggle_theme, outputs=None)
+
+    btn_refresh_logs.click(
+        fn=lambda: (get_log_preview("huggingface_api/logs/log_analysis.csv"),
+                    get_log_preview("huggingface_api/logs/log_feedbacks.csv")),
+        inputs=[],
+        outputs=[log_analysis_preview, log_feedback_preview]
+    )
+
+    btn_dl_analysis.click(fn=lambda: download_log_file("huggingface_api/logs/log_analysis.csv"),
+                          inputs=[], outputs=[file_dl])
+    btn_dl_feedback.click(fn=lambda: download_log_file("huggingface_api/logs/log_feedbacks.csv"),
+                          inputs=[], outputs=[file_dl])
 
 if __name__ == "__main__":
     
